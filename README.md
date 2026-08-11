@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="https://github.com/liuzq2002/adguard-home-manager-mod" target="_blank" rel="noopener noreferrer">
-    GitHub 仓库（占位符）
+    GitHub 仓库
   </a>
   ·
   <a href="https://github.com/liuzq2002/adguard-home-manager-mod/releases" target="_blank" rel="noopener noreferrer">
@@ -27,8 +27,6 @@
 
 模块开机时会随机化 AdGuard Home 的管理端口，本应用会自动读取
 `/data/adb/agh/bin/AdGuardHome.yaml` 中的 `http.address` 并自动连接，无需手动配置服务器。
-
-> 注意：当前 README 中的仓库链接为占位符，正式仓库创建后即可直接使用。
 
 ## 与原版的差异
 
@@ -89,11 +87,10 @@ keytool -genkeypair -v -keystore app/aghm-release.keystore \
 ```
 
 然后在 `android/key.properties` 中填写 `storePassword`、`keyPassword`、`keyAlias`、`storeFile`。
-`key.properties` 与 `*.keystore` 已被 gitignore 忽略，请务必妥善备份。
 
 ## 免责声明
 
-本项目是**非官方**客户端，与 AdGuard 官方及 AdGuard Home 团队没有任何关联。
+本项目是**非官方**客户端 与 AdGuard 官方 、AdGuard Home 团队以及 JGeek00 原始项目没有任何关联。
 请勿用于任何违反法律法规的用途。
 
 ## 许可证与合规
