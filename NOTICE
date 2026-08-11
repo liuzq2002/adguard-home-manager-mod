@@ -1,0 +1,24 @@
+AdGuard Home Manager (Mod)
+=========================
+
+Copyright 2022 JGeek00
+  https://github.com/JGeek00/adguard-home-manager
+
+Modifications Copyright 2026 liuzq2002
+  https://github.com/liuzq2002/adguard-home-manager-mod
+
+This project is a modified fork of JGeek00/adguard-home-manager and is
+distributed under the Apache License, Version 2.0. See LICENSE.md for the
+full license text.
+
+Main modifications:
+  - Renamed Android application package to com.liuzq2002.adguard_home_manager.
+  - Removed onboarding, clients page, home floating action button, home
+    server-status card, and several settings entries (safe search, access,
+    DHCP, encryption, server info, servers, general, advanced, updates).
+  - Added automatic reading of the module management port from
+    /data/adb/agh/bin/AdGuardHome.yaml and automatic connection.
+  - Added home-page master protection switch with pause time options.
+  - Added PROXY_URL subscription configuration for
+    /data/adb/agh/scripts/config.prop.
+  - Added a Quick Settings tile to toggle AdGuard Home protection.
