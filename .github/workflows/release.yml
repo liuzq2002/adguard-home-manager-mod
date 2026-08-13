@@ -5,6 +5,12 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release tag (e.g. v2.23.1)'
+        required: true
+        default: 'v2.23.1'
+        type: string
 
 permissions:
   contents: write
@@ -12,6 +18,8 @@ permissions:
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: ${{ inputs.release_tag || github.ref_name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -61,7 +69,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
-          name: AdGuard Home Manager Mod ${{ github.ref_name }}
+          tag_name: ${{ env.RELEASE_TAG }}
+          name: AdGuard Home Manager Mod ${{ env.RELEASE_TAG }}
           body_path: RELEASE_NOTES.md
           files: build/app/outputs/flutter-apk/app-release.apk
