@@ -36,6 +36,7 @@ jobs:
         env:
           KEYSTORE_B64: ${{ secrets.SIGNING_KEYSTORE_B64 }}
           PROPS_B64: ${{ secrets.SIGNING_PROPERTIES_B64 }}
+          EXPECTED_DIGEST: 60dcf56f4ed8978b2b118bbe691f77daec68a23732264b95d14a3e3b1325f4e1
         run: |
           set -euo pipefail
           if [ -z "$KEYSTORE_B64" ] || [ -z "$PROPS_B64" ]; then
@@ -45,6 +46,23 @@ jobs:
           fi
           echo "$KEYSTORE_B64" | base64 -d > android/app/aghm-release.keystore
           echo "$PROPS_B64" | base64 -d > android/key.properties
+          if [ ! -s android/app/aghm-release.keystore ]; then
+            echo "::error::Decoded keystore is empty. Check SIGNING_KEYSTORE_B64 (expected 3656 chars, starts with MIIK)."
+            exit 1
+          fi
+          STORE_PASS=$(sed -n 's/^storePassword=//p' android/key.properties)
+          if [ -z "$STORE_PASS" ]; then
+            echo "::error::key.properties missing storePassword. Check SIGNING_PROPERTIES_B64 (expected 152 chars, starts with c3Rv)."
+            exit 1
+          fi
+          ACTUAL=$(keytool -list -v -keystore android/app/aghm-release.keystore -alias aghm -storepass "$STORE_PASS" 2>/dev/null | sed -n 's/^\s*SHA256: //p' | tr -d ':' | tr 'A-F' 'a-f' | head -1)
+          echo "Decoded keystore cert SHA-256: $ACTUAL"
+          if [ "$ACTUAL" != "$EXPECTED_DIGEST" ]; then
+            echo "::error::The keystore in SIGNING_KEYSTORE_B64 is not the expected aghm keystore."
+            echo "::error::Regenerate the secret from android/app/aghm-release.keystore and retry."
+            exit 1
+          fi
+          echo "Keystore OK: matches expected aghm certificate."
 
       - name: Build APK
         run: |
