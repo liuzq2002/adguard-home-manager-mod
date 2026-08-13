@@ -4,7 +4,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'package:adguard_home_manager/models/blocked_services.dart';
 import 'package:adguard_home_manager/models/dhcp.dart';
@@ -302,7 +301,6 @@ class ApiClient {
         return result;
       }
     } catch (e) {
-      Sentry.captureException(e);
       return {
         'result': 'error',
         'log': AppLog(
@@ -385,7 +383,6 @@ class ApiClient {
         };
       }
     } catch (e) {
-      Sentry.captureException(e);
       return {
           'result': 'error',
           'log': AppLog(
@@ -656,7 +653,6 @@ class ApiClient {
         };
       }
     } catch (e) {
-      Sentry.captureException(e);
       return {
         'result': 'error',
         'log': AppLog(
@@ -745,7 +741,6 @@ class ApiClient {
         return result;
       }
     } catch (e) {
-      Sentry.captureException(e);
       return {
         'result': 'error', 
         'log': AppLog(
@@ -791,7 +786,6 @@ class ApiClient {
         return result;
       }
     } catch (e) {
-      Sentry.captureException(e);
       return {
         'result': 'error', 
         'log': AppLog(
@@ -991,7 +985,6 @@ class ApiClient {
         };
       }
     } catch (e) {
-      Sentry.captureException(e);
       return {
         'result': 'error',
         'log': AppLog(
@@ -1383,7 +1376,6 @@ class ApiClient {
         };
       }
     } catch (e) {
-      Sentry.captureException(e);
       return {
         'result': 'error',
         'log': AppLog(
@@ -2151,7 +2143,6 @@ class ApiClient {
         };
       }
     } catch (e) {
-      Sentry.captureException(e);
       return {
         'result': 'error',
         'log': AppLog(

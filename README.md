@@ -72,10 +72,13 @@
 
 ```bash
 flutter pub get
-flutter build apk --release --target-platform android-arm64
+flutter build apk --release --target-platform android-arm64 \
+  --obfuscate --split-debug-info=build/symbols
 ```
 
-APK 输出位置：`build/app/outputs/flutter-apk/app-release.apk`（仅含 arm64-v8a）
+APK 输出位置：`build/app/outputs/flutter-apk/app-release.apk`（仅含 arm64-v8a，约 20MB）
+
+> 混淆后如需解析崩溃堆栈，请保留 `build/symbols` 目录，使用 `flutter symbolize`。
 
 ### 签名
 

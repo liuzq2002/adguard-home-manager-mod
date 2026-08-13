@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'package:adguard_home_manager/classes/http_client.dart';
 import 'package:adguard_home_manager/models/server.dart';
@@ -54,8 +53,7 @@ class ServerAuth {
       return AuthStatus.timeoutException;
     } on HandshakeException {
       return AuthStatus.handshakeException;
-    } catch (e, stackTrace) {
-      Sentry.captureException(e, stackTrace: stackTrace);
+    } catch (e) {
       return AuthStatus.unknown;
     }
   }
@@ -78,8 +76,7 @@ class ServerAuth {
       return AuthStatus.timeoutException;
     } on HandshakeException {
       return AuthStatus.handshakeException;
-    } catch (e, stackTrace) {
-      Sentry.captureException(e, stackTrace: stackTrace);
+    } catch (e) {
       return AuthStatus.unknown;
     }
   }

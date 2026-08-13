@@ -1,17 +1,13 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:window_manager/window_manager.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:adguard_home_manager/l10n/app_localizations.dart';
 
@@ -38,16 +34,6 @@ import 'package:adguard_home_manager/services/module_config_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-
-  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-    await windowManager.ensureInitialized();
-    WindowManager.instance.setMinimumSize(const Size(500, 700));
-  }
-
-  if (Platform.isWindows || Platform.isLinux) {
-    sqfliteFfiInit();
-    databaseFactory = databaseFactoryFfi;
-  }
 
   await dotenv.load(fileName: '.env');
 
@@ -160,51 +146,7 @@ void main() async {
     )
   );
 
-  if (
-    (
-      kReleaseMode &&
-      (dotenv.env['SENTRY_DSN'] != null && dotenv.env['SENTRY_DSN'] != "")
-    ) || (
-      dotenv.env['ENABLE_SENTRY'] == "true" &&
-      (dotenv.env['SENTRY_DSN'] != null && dotenv.env['SENTRY_DSN'] != "")
-    )
-  ) {
-    SentryFlutter.init(
-      (options) {
-        options.dsn = dotenv.env['SENTRY_DSN'];
-        options.sendDefaultPii = false;
-        options.beforeSend = (event, hint) {
-          if (event.throwable is HttpException) {
-            return null;
-          }
-
-          if (event.message?.formatted.contains("HttpException") == true) {
-            return null;
-          }
-
-          if (
-            event.message?.formatted.contains("Unexpected character") ?? false ||
-            (event.throwable != null && event.throwable!.toString().contains("Unexpected character"))
-          ) {
-            return null;
-          }
-
-          if (
-            event.message?.formatted.contains("Unexpected end of input") ?? false ||
-            (event.throwable != null && event.throwable!.toString().contains("Unexpected end of input"))
-          ) {
-            return null;
-          }
-
-          return event;
-        };
-      },
-      appRunner: () => startApp()
-    );
-  }
-  else {
-    startApp();
-  }
+  startApp();
 }
 
 class Main extends StatelessWidget {
@@ -239,12 +181,8 @@ class Main extends StatelessWidget {
           ],
           supportedLocales: const [
             Locale('en', ''),
-            Locale('es', ''),
             Locale('zh', ''),
             Locale('zh', 'CN'),
-            Locale('pl', ''),
-            Locale('tr', ''),
-            Locale('ru', '')
           ],
           scaffoldMessengerKey: scaffoldMessengerKey,
           navigatorKey: globalNavigatorKey,

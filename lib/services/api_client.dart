@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'package:adguard_home_manager/models/blocked_services.dart';
 import 'package:adguard_home_manager/models/rewrite_status.dart';
@@ -49,8 +48,7 @@ class ApiClientV2 {
         );
       } on FormatException {
         return const ApiResponse(successful: false);
-      } catch (e, stackTrace) {
-        Sentry.captureException(e, stackTrace: stackTrace);
+      } catch (e) {
         return const ApiResponse(successful: false);
       }
     }
@@ -102,8 +100,7 @@ class ApiClientV2 {
         );
       } on FormatException {
         return const ApiResponse(successful: false);
-      } catch (e, stackTrace) {
-        Sentry.captureException(e, stackTrace: stackTrace);
+      } catch (e) {
         return const ApiResponse(successful: false);
       }
     }
@@ -188,12 +185,7 @@ class ApiClientV2 {
           successful: true,
           content: clients
         );
-      } catch (e, stackTrace) {
-        Sentry.captureException(
-          e, 
-          stackTrace: stackTrace, 
-          hint: Hint.withMap({ "statusCode": results.map((e) => e.statusCode.toString()) })
-        );
+      } catch (e) {
         return const ApiResponse(successful: false);
       }
     }
@@ -236,12 +228,7 @@ class ApiClientV2 {
           successful: true,
           content: LogsData.fromJson(jsonDecode(result.body!))
         );
-      } catch (e, stackTrace) {
-        Sentry.captureException(
-          e, 
-          stackTrace: stackTrace, 
-          hint: Hint.withMap({ "statusCode": result.statusCode.toString() })
-        );
+      } catch (e) {
         return const ApiResponse(successful: false);
       }
     }
@@ -258,12 +245,7 @@ class ApiClientV2 {
           successful: true,
           content: FilteringStatus.fromJson(jsonDecode(result.body!))
         );
-      } catch (e, stackTrace) {
-        Sentry.captureException(
-          e, 
-          stackTrace: stackTrace, 
-          hint: Hint.withMap({ "statusCode": result.statusCode.toString() })
-        );
+      } catch (e) {
         return const ApiResponse(successful: false);
       }
     }
@@ -330,12 +312,7 @@ class ApiClientV2 {
               : []
           })
         );
-      } catch (e, stackTrace) {
-        Sentry.captureException(
-          e, 
-          stackTrace: stackTrace, 
-          hint: Hint.withMap({ "statusCode": [results1.statusCode, results2.statusCode].map((e) => e.toString()) })
-        );
+      } catch (e) {
         return const ApiResponse(successful: false);
       }
     }
@@ -400,12 +377,7 @@ class ApiClientV2 {
           successful: true,
           content: ServerInfoData.fromJson(jsonDecode(result.body!))
         );
-      } catch (e, stackTrace) {
-        Sentry.captureException(
-          e, 
-          stackTrace: stackTrace, 
-          hint: Hint.withMap({ "statusCode": result.statusCode.toString() })
-        );
+      } catch (e) {
         return const ApiResponse(successful: false);
       }
     }
@@ -438,12 +410,7 @@ class ApiClientV2 {
           successful: true,
           content: {'updated': jsonDecode(results[0].body!)['updated']+jsonDecode(results[1].body!)['updated']} 
         );
-      } catch (e, stackTrace) {
-        Sentry.captureException(
-          e, 
-          stackTrace: stackTrace, 
-          hint: Hint.withMap({ "statusCode": results.map((e) => e.statusCode.toString()) })
-        );
+      } catch (e) {
         return const ApiResponse(successful: false);
       }
     }
@@ -509,12 +476,7 @@ class ApiClientV2 {
               : DhcpStatus.fromJson(jsonDecode(results[1].body!))
           )
         );
-      } catch (e, stackTrace) {
-        Sentry.captureException(
-          e, 
-          stackTrace: stackTrace, 
-          hint: Hint.withMap({ "statusCode": results.map((e) => e.statusCode.toString()) })
-        );
+      } catch (e) {
         return const ApiResponse(successful: false);
       }
     }
@@ -597,12 +559,7 @@ class ApiClientV2 {
           successful: true,
           content: data
         );
-      } catch (e, stackTrace) {
-        Sentry.captureException(
-          e, 
-          stackTrace: stackTrace, 
-          hint: Hint.withMap({ "statusCode": result.statusCode.toString() })
-        );
+      } catch (e) {
         return const ApiResponse(successful: false);
       }
     }
@@ -633,12 +590,7 @@ class ApiClientV2 {
           successful: true,
           content: data
         );
-      } catch (e, stackTrace) {
-        Sentry.captureException(
-          e, 
-          stackTrace: stackTrace, 
-          hint: Hint.withMap({ "statusCode": result.statusCode.toString() })
-        );
+      } catch (e) {
         return const ApiResponse(successful: false);
       }
     }
@@ -677,12 +629,7 @@ class ApiClientV2 {
           successful: true,
           content: QueryLogConfig.fromJson(jsonDecode(result.body!))
         );
-      } catch (e, stackTrace) {
-        Sentry.captureException(
-          e, 
-          stackTrace: stackTrace, 
-          hint: Hint.withMap({ "statusCode": result.statusCode.toString() })
-        );
+      } catch (e) {
         return const ApiResponse(successful: false);
       }
     }
@@ -719,12 +666,7 @@ class ApiClientV2 {
           successful: true,
           content: DnsInfo.fromJson(jsonDecode(result.body!))
         );
-      } catch (e, stackTrace) {
-        Sentry.captureException(
-          e, 
-          stackTrace: stackTrace, 
-          hint: Hint.withMap({ "statusCode": result.statusCode.toString() })
-        );
+      } catch (e) {
         return const ApiResponse(successful: false);
       }
     }
@@ -759,12 +701,7 @@ class ApiClientV2 {
           successful: true,
           content: EncryptionData.fromJson(jsonDecode(result.body!))
         );
-      } catch (e, stackTrace) {
-        Sentry.captureException(
-          e, 
-          stackTrace: stackTrace, 
-          hint: Hint.withMap({ "statusCode": result.statusCode.toString() })
-        );
+      } catch (e) {
         return const ApiResponse(successful: false);
       }
     }
@@ -783,12 +720,7 @@ class ApiClientV2 {
             BlockedServicesFromApi.fromJson(jsonDecode(result.body!)).blockedServices
           )
         );
-      } catch (e, stackTrace) {
-        Sentry.captureException(
-          e, 
-          stackTrace: stackTrace, 
-          hint: Hint.withMap({ "statusCode": result.statusCode.toString() })
-        );
+      } catch (e) {
         return const ApiResponse(successful: false);
       }
     }
@@ -821,12 +753,7 @@ class ApiClientV2 {
           message: result.body
         ) : null
       );
-    } catch (e, stackTrace) {
-      Sentry.captureException(
-        e, 
-        stackTrace: stackTrace, 
-        hint: Hint.withMap({ "statusCode": result.statusCode.toString() })
-      );
+    } catch (e) {
       return const ApiResponse(successful: false);
     }
   }
@@ -871,12 +798,7 @@ class ApiClientV2 {
           successful: true,
           content: obj
         );
-      } catch (e, stackTrace) {
-        Sentry.captureException(
-          e, 
-          stackTrace: stackTrace, 
-          hint: Hint.withMap({ "statusCode": results.map((e) => e.statusCode.toString()) })
-        );
+      } catch (e) {
         return const ApiResponse(successful: false);
       }
     }
@@ -937,12 +859,7 @@ class ApiClientV2 {
           successful: true,
           content: StatisticsConfig.fromJson(jsonDecode(result.body!))
         );
-      } catch (e, stackTrace) {
-        Sentry.captureException(
-          e, 
-          stackTrace: stackTrace, 
-          hint: Hint.withMap({ "statusCode": result.statusCode.toString() })
-        );
+      } catch (e) {
         return const ApiResponse(successful: false);
       }
     }

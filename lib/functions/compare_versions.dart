@@ -1,4 +1,3 @@
-import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'package:adguard_home_manager/models/github_release.dart';
 
@@ -58,14 +57,6 @@ bool compareVersions({
       }
     }
   } catch (e) {
-    Sentry.captureException(e);
-    Sentry.captureMessage("compareVersions error", params: [
-      {
-        "fn": "compareVersions",
-        "currentVersion": currentVersion,
-        "newVersion": newVersion,
-      }.toString()
-    ]);
     return false;
   }
 }
@@ -136,15 +127,6 @@ bool serverVersionIsAhead({
       }
     }
   } catch (e) {
-    Sentry.captureException(e);
-    Sentry.captureMessage("serverVersionIsAhead error", params: [
-      {
-        "fn": "serverVersionIsAhead",
-        "currentVersion": currentVersion,
-        "referenceVersion": referenceVersion,
-        "referenceVersionBeta": referenceVersionBeta ?? ""
-      }.toString()
-    ]);
     return false;
   }
 }
@@ -172,17 +154,14 @@ bool gitHubUpdateExists({
           return false;
         }
       } catch (e) {
-        Sentry.captureMessage("Invalid release number. Current release: $currentBuildNumber. New release: $releaseNumber");
         return false;
       }
     }
     else {
-      Sentry.captureMessage("Invalid release number. Tagname: ${gitHubRelease.tagName}");
       return false;
     }
   }
   else {
-    Sentry.captureMessage("No matches. ${gitHubRelease.tagName}");
     return false;
   }
 }

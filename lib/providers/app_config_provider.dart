@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -232,8 +231,7 @@ class AppConfigProvider with ChangeNotifier {
       _overrideSslCheck = status;
       notifyListeners();
       return true;
-    } catch (e, stackTrace) {
-      Sentry.captureException(e, stackTrace: stackTrace);
+    } catch (e) {
       return false;
     }
   }
@@ -244,8 +242,7 @@ class AppConfigProvider with ChangeNotifier {
       _hideZeroValues = status;
       notifyListeners();
       return true;
-    } catch (e, stackTrace) {
-      Sentry.captureException(e, stackTrace: stackTrace);
+    } catch (e) {
       return false;
     }
   }
@@ -256,8 +253,7 @@ class AppConfigProvider with ChangeNotifier {
       _showTimeLogs = status;
       notifyListeners();
       return true;
-    } catch (e, stackTrace) {
-      Sentry.captureException(e, stackTrace: stackTrace);
+    } catch (e) {
       return false;
     }
   }
@@ -268,8 +264,7 @@ class AppConfigProvider with ChangeNotifier {
       _showIpLogs = status;
       notifyListeners();
       return true;
-    } catch (e, stackTrace) {
-      Sentry.captureException(e, stackTrace: stackTrace);
+    } catch (e) {
       return false;
     }
   }
@@ -280,8 +275,7 @@ class AppConfigProvider with ChangeNotifier {
       _selectedTheme = value;
       notifyListeners();
       return true;
-    } catch (e, stackTrace) {
-      Sentry.captureException(e, stackTrace: stackTrace);
+    } catch (e) {
       return false;
     }
   }
@@ -292,8 +286,7 @@ class AppConfigProvider with ChangeNotifier {
       _useDynamicColor = value;
       notifyListeners();
       return true;
-    } catch (e, stackTrace) {
-      Sentry.captureException(e, stackTrace: stackTrace);
+    } catch (e) {
       return false;
     }
   }
@@ -304,8 +297,7 @@ class AppConfigProvider with ChangeNotifier {
       _combinedChartHome = value;
       notifyListeners();
       return true;
-    } catch (e, stackTrace) {
-      Sentry.captureException(e, stackTrace: stackTrace);
+    } catch (e) {
       return false;
     }
   }
@@ -322,8 +314,7 @@ class AppConfigProvider with ChangeNotifier {
       _staticColor = value;
       notifyListeners();
       return true;
-    } catch (e, stackTrace) {
-      Sentry.captureException(e, stackTrace: stackTrace);
+    } catch (e) {
       return false;
     }
   }
@@ -334,8 +325,7 @@ class AppConfigProvider with ChangeNotifier {
       _homeTopItemsOrder = order;
       notifyListeners();
       return true;
-    } catch (e, stackTrace) {
-      Sentry.captureException(e, stackTrace: stackTrace);
+    } catch (e) {
       return false;
     }
   }
@@ -346,8 +336,7 @@ class AppConfigProvider with ChangeNotifier {
       _hideServerAddress = value;
       notifyListeners();
       return true;
-    } catch (e, stackTrace) {
-      Sentry.captureException(e, stackTrace: stackTrace);
+    } catch (e) {
       return false;
     }
   }
@@ -395,7 +384,6 @@ class AppConfigProvider with ChangeNotifier {
           }).where((e) => e != null).toList()
         );
       } catch (e) {
-        Sentry.captureException(e);
         _homeTopItemsOrder = homeTopItemsDefaultOrder;
       }
     }
