@@ -16,48 +16,11 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 object AdGuardModuleController {
-    private const val YAML_PATH = "/data/adb/agh/bin/AdGuardHome.yaml"
     private const val USER = "root"
     private const val PASSWORD = "root"
     private const val TAG = "AdGuardModule"
 
-    fun readPort(context: Context? = null): Int? {
-        val saved = readSavedAddress(context)
-        if (saved != null) return saved
-
-        return readPortFromYaml()
-    }
-
-    fun readPortFromYaml(): Int? {
-        val output = runSu("cat $YAML_PATH") ?: return null
-        return parsePort(output)
-    }
-
-    fun parsePort(output: String): Int? {
-        val lines = output.lines()
-        var inHttp = false
-        for (line in lines) {
-            val trimmed = line.trim()
-            if (trimmed.startsWith("http:")) {
-                inHttp = true
-                continue
-            }
-            if (inHttp) {
-                if (trimmed.isNotEmpty() && !line.startsWith(" ")) {
-                    inHttp = false
-                }
-                if (inHttp && trimmed.startsWith("address:")) {
-                    val value = trimmed.removePrefix("address:").trim()
-                        .removePrefix("\"").removeSuffix("\"")
-                        .removePrefix("'").removeSuffix("'")
-                    return value.substringAfterLast(":", "").toIntOrNull()
-                }
-            }
-        }
-        return null
-    }
-
-    private fun readSavedAddress(context: Context?): Int? {
+    fun readCachedPort(context: Context?): Int? {
         if (context == null) return null
         return try {
             val prefs: SharedPreferences = context.getSharedPreferences(
@@ -71,6 +34,18 @@ object AdGuardModuleController {
         } catch (t: Throwable) {
             Log.e(TAG, "read saved address failed", t)
             null
+        }
+    }
+
+    fun saveCachedPort(context: Context?, port: Int) {
+        if (context == null) return
+        try {
+            context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+                .edit()
+                .putString("moduleHttpAddress", "127.0.0.1:$port")
+                .apply()
+        } catch (t: Throwable) {
+            Log.e(TAG, "save port failed", t)
         }
     }
 
@@ -92,31 +67,6 @@ object AdGuardModuleController {
     fun setProtection(port: Int, enabled: Boolean): Boolean {
         val body = """{"enabled":$enabled,"duration":null}"""
         return httpRequest(port, "/control/protection", "POST", body) != null
-    }
-
-    private fun runSu(command: String): String? {
-        val candidates = listOf(
-            "su",
-            "/sbin/su",
-            "/system/bin/su",
-            "/system/xbin/su",
-            "/debug_ramdisk/su",
-        )
-        for (su in candidates) {
-            try {
-                val process = ProcessBuilder(su, "-c", command)
-                    .redirectErrorStream(true)
-                    .start()
-                val output = process.inputStream.bufferedReader().use { it.readText() }
-                val code = process.waitFor()
-                if (code == 0) return output
-                val detail = output.trim().take(200)
-                Log.w(TAG, "su($su) exit=$code${if (detail.isEmpty()) "" else " | $detail"}")
-            } catch (t: Throwable) {
-                Log.w(TAG, "su($su) unavailable", t)
-            }
-        }
-        return null
     }
 
     private fun httpRequest(port: Int, path: String, method: String, body: String? = null): String? {
@@ -160,9 +110,7 @@ class AdGuardTileService : TileService() {
         Thread {
             try {
                 if (toggleProtection()) return@Thread
-                Log.w("AdGuardTile", "toggle failed via saved port, retrying with fresh YAML port")
-                if (toggleProtection(refreshFromYaml = true)) return@Thread
-                Log.w("AdGuardTile", "toggle failed, opening app")
+                Log.w("AdGuardTile", "toggle failed, opening app to re-fetch port")
                 openApp()
             } catch (t: Throwable) {
                 Log.e("AdGuardTile", "toggle failed", t)
@@ -175,15 +123,10 @@ class AdGuardTileService : TileService() {
         super.onStartListening()
         Thread {
             try {
-                var port = AdGuardModuleController.readPort(this)
-                var enabled = port?.let { AdGuardModuleController.getProtectionState(it) }
-                if (enabled == null) {
-                    Log.w("AdGuardTile", "listening: saved port failed, retrying YAML port")
-                    val freshPort = AdGuardModuleController.readPortFromYaml()
-                    if (freshPort != null) {
-                        port = freshPort
-                        enabled = AdGuardModuleController.getProtectionState(freshPort)
-                    }
+                val port = AdGuardModuleController.readCachedPort(this)
+                val enabled = port?.let { AdGuardModuleController.getProtectionState(it) }
+                if (enabled != null && port != null) {
+                    AdGuardModuleController.saveCachedPort(this, port)
                 }
                 val state = when (enabled) {
                     true -> Tile.STATE_ACTIVE
@@ -198,18 +141,14 @@ class AdGuardTileService : TileService() {
         }.start()
     }
 
-    private fun toggleProtection(refreshFromYaml: Boolean = false): Boolean {
-        val port = if (refreshFromYaml) {
-            AdGuardModuleController.readPortFromYaml()
-        } else {
-            AdGuardModuleController.readPort(this)
-        } ?: return false
-
+    private fun toggleProtection(): Boolean {
+        val port = AdGuardModuleController.readCachedPort(this) ?: return false
         val current = AdGuardModuleController.getProtectionState(port) ?: return false
         val target = current != true
         val ok = AdGuardModuleController.setProtection(port, target)
         if (ok) {
             Log.i("AdGuardTile", "toggle ok: port=$port target=$target")
+            AdGuardModuleController.saveCachedPort(this, port)
             updateTile(if (target) Tile.STATE_ACTIVE else Tile.STATE_INACTIVE)
         }
         return ok
@@ -231,13 +170,18 @@ class AdGuardTileService : TileService() {
 
     private fun openApp() {
         Handler(Looper.getMainLooper()).post {
+            val intent = Intent(this, MainActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            }
             try {
-                val intent = Intent(this, MainActivity::class.java).apply {
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                }
                 startActivityAndCollapse(intent)
             } catch (t: Throwable) {
-                Log.e("AdGuardTile", "open app failed", t)
+                Log.e("AdGuardTile", "startActivityAndCollapse failed, fallback to startActivity", t)
+                try {
+                    startActivity(intent)
+                } catch (t2: Throwable) {
+                    Log.e("AdGuardTile", "open app failed", t2)
+                }
             }
         }
     }
