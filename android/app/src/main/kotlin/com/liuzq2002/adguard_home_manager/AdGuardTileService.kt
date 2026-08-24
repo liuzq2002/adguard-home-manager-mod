@@ -1,5 +1,7 @@
 package com.liuzq2002.adguard_home_manager
 
+import android.app.PendingIntent
+import android.os.Build
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -7,6 +9,7 @@ import android.graphics.drawable.Icon
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
+import android.os.Process
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import android.util.Base64
@@ -27,7 +30,7 @@ object AdGuardModuleController {
                 "FlutterSharedPreferences",
                 Context.MODE_PRIVATE
             )
-            val saved = prefs.getString("moduleHttpAddress", null) ?: return null
+            val saved = prefs.getString("flutter.moduleHttpAddress", null) ?: return null
             val normalized = if (saved.contains("://")) saved else "http://$saved"
             val port = Uri.parse(normalized).port
             if (port > 0) port else null
@@ -42,7 +45,7 @@ object AdGuardModuleController {
         try {
             context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
                 .edit()
-                .putString("moduleHttpAddress", "127.0.0.1:$port")
+                .putString("flutter.moduleHttpAddress", "127.0.0.1:$port")
                 .apply()
         } catch (t: Throwable) {
             Log.e(TAG, "save port failed", t)
@@ -174,7 +177,17 @@ class AdGuardTileService : TileService() {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
             }
             try {
-                startActivityAndCollapse(intent)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    val pending = PendingIntent.getActivity(
+                        this,
+                        0,
+                        intent,
+                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                    )
+                    startActivityAndCollapse(pending, Process.myUserHandle())
+                } else {
+                    startActivityAndCollapse(intent)
+                }
             } catch (t: Throwable) {
                 Log.e("AdGuardTile", "startActivityAndCollapse failed, fallback to startActivity", t)
                 try {
