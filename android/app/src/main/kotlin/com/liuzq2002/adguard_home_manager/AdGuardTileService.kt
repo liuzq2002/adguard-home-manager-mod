@@ -2,6 +2,7 @@ package com.liuzq2002.adguard_home_manager
 
 import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.drawable.Icon
 import android.net.Uri
