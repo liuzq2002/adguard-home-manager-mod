@@ -146,8 +146,47 @@ void main() async {
   startApp();
 }
 
-class Main extends StatelessWidget {
+class Main extends StatefulWidget {
   const Main({super.key});
+
+  @override
+  State<Main> createState() => _MainState();
+}
+
+class _MainState extends State<Main> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && Platform.isAndroid) {
+      refreshModulePort();
+    }
+  }
+
+  Future<void> refreshModulePort() async {
+    try {
+      final moduleConfigService = ModuleConfigService();
+      final appConfigProvider = Provider.of<AppConfigProvider>(context, listen: false);
+      final serversProvider = Provider.of<ServersProvider>(context, listen: false);
+      final yamlAddress = await moduleConfigService.readHttpAddress();
+      if (yamlAddress == null || yamlAddress.isEmpty) return;
+      if (yamlAddress == appConfigProvider.moduleHttpAddress) return;
+      appConfigProvider.setModuleHttpAddress(yamlAddress);
+      await serversProvider.autoConnectModule(yamlAddress);
+    } catch (_) {
+      // 静默失败，保留旧缓存
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
