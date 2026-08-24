@@ -11,8 +11,8 @@ class BootReceiver : BroadcastReceiver() {
         try {
             // 启动透明 Activity：清除 stopped 状态并触发端口刷新 + 磁贴绑定
             context.startActivity(
-                Intent(context, RefreshActivity::class.java).apply {
-                    putExtra(RefreshActivity.EXTRA_MODE, RefreshActivity.MODE_REFRESH)
+                Intent(context, ControlActivity::class.java).apply {
+                    putExtra(ControlActivity.EXTRA_MODE, ControlActivity.MODE_REFRESH)
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
             )

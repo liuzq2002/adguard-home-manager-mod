@@ -32,6 +32,8 @@ object AdGuardModuleController {
         return parsePort(output)
     }
 
+    fun readCachedPort(context: Context?): Int? = readSavedAddress(context)
+
     fun resolvePort(context: Context?): Int? {
         val cached = readSavedAddress(context)
         if (cached != null) return cached
@@ -180,39 +182,12 @@ class AdGuardTileService : TileService() {
         super.onClick()
         val tile = qsTile ?: return
 
-        Thread {
-            try {
-                val port = AdGuardModuleController.readPort(this)
-                if (port == null) {
-                    updateTile(Tile.STATE_UNAVAILABLE)
-                    return@Thread
-                }
-                val current = AdGuardModuleController.getProtectionState(port)
-                if (current == true) {
-                    // 保护开启中 → 打开暂停时长选择
-                    openPauseChooser(port)
-                    return@Thread
-                }
-                val target = current != true
-                val ok = AdGuardModuleController.setProtection(port, target)
-                if (ok) {
-                    Log.i("AdGuardTile", "toggle ok: port=$port target=$target")
-                    updateTile(if (target) Tile.STATE_ACTIVE else Tile.STATE_INACTIVE)
-                } else {
-                    Log.w("AdGuardTile", "toggle failed: port=$port")
-                    updateTile(Tile.STATE_UNAVAILABLE)
-                }
-            } catch (t: Throwable) {
-                Log.e("AdGuardTile", "toggle failed", t)
-                updateTile(Tile.STATE_UNAVAILABLE)
-            }
-        }.start()
+        // 只做一件事：拉起控制 Activity（App 进程有 su，负责刷新+开关）
+        openControl()
     }
 
-    private fun openPauseChooser(port: Int) {
-        val intent = Intent(this, RefreshActivity::class.java).apply {
-            putExtra(RefreshActivity.EXTRA_MODE, RefreshActivity.MODE_PAUSE)
-            putExtra(RefreshActivity.EXTRA_PORT, port)
+    private fun openControl() {
+        val intent = Intent(this, ControlActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         try {
@@ -238,12 +213,10 @@ class AdGuardTileService : TileService() {
                 )
                 method.invoke(this, pending, Process.myUserHandle())
             } catch (t2: Throwable) {
-                Log.e("AdGuardTile", "open pause chooser failed", t2)
-                updateTile(Tile.STATE_UNAVAILABLE)
+                Log.e("AdGuardTile", "open control failed", t2)
             }
         } catch (t: Throwable) {
-            Log.e("AdGuardTile", "open pause chooser failed", t)
-            updateTile(Tile.STATE_UNAVAILABLE)
+            Log.e("AdGuardTile", "open control failed", t)
         }
     }
 
@@ -251,33 +224,30 @@ class AdGuardTileService : TileService() {
         super.onStartListening()
         Thread {
             try {
-                val port = AdGuardModuleController.readPort(this)
+                // 只读缓存，不执行 su
+                val port = AdGuardModuleController.readCachedPort(this)
                 if (port == null) {
-                    Log.w("AdGuardTile", "listening: no port (su/yaml failed)")
-                    updateTile(Tile.STATE_UNAVAILABLE)
+                    Log.w("AdGuardTile", "listening: no cached port")
+                    updateTile(Tile.STATE_INACTIVE, R.string.tile_label_init)
                     return@Thread
                 }
                 val enabled = AdGuardModuleController.getProtectionState(port)
-                val state = when (enabled) {
-                    true -> Tile.STATE_ACTIVE
-                    false -> Tile.STATE_INACTIVE
-                    null -> Tile.STATE_UNAVAILABLE
-                }
+                val state = if (enabled == true) Tile.STATE_ACTIVE else Tile.STATE_INACTIVE
                 Log.i("AdGuardTile", "listening: port=$port enabled=$enabled state=$state")
-                updateTile(state)
+                updateTile(state, if (enabled == null) R.string.tile_label_init else R.string.tile_label)
             } catch (t: Throwable) {
                 Log.e("AdGuardTile", "refresh failed", t)
-                updateTile(Tile.STATE_UNAVAILABLE)
+                updateTile(Tile.STATE_INACTIVE, R.string.tile_label_init)
             }
         }.start()
     }
 
-    private fun updateTile(state: Int) {
+    private fun updateTile(state: Int, labelRes: Int = R.string.tile_label) {
         Handler(Looper.getMainLooper()).post {
             try {
                 val tile = qsTile ?: return@post
                 tile.state = state
-                tile.label = getString(R.string.tile_label)
+                tile.label = getString(labelRes)
                 tile.icon = Icon.createWithResource(this, R.drawable.ic_tile_adguard)
                 tile.updateTile()
             } catch (t: Throwable) {
