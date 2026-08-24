@@ -1,5 +1,6 @@
 package com.liuzq2002.adguard_home_manager
 
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -7,6 +8,8 @@ import android.graphics.drawable.Icon
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
+import android.os.Process
+import android.os.UserHandle
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import android.util.Base64
@@ -187,13 +190,7 @@ class AdGuardTileService : TileService() {
                 val current = AdGuardModuleController.getProtectionState(port)
                 if (current == true) {
                     // 保护开启中 → 打开暂停时长选择
-                    startActivity(
-                        Intent(this, RefreshActivity::class.java).apply {
-                            putExtra(RefreshActivity.EXTRA_MODE, RefreshActivity.MODE_PAUSE)
-                            putExtra(RefreshActivity.EXTRA_PORT, port)
-                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        }
-                    )
+                    openPauseChooser(port)
                     return@Thread
                 }
                 val target = current != true
@@ -210,6 +207,44 @@ class AdGuardTileService : TileService() {
                 updateTile(Tile.STATE_UNAVAILABLE)
             }
         }.start()
+    }
+
+    private fun openPauseChooser(port: Int) {
+        val intent = Intent(this, RefreshActivity::class.java).apply {
+            putExtra(RefreshActivity.EXTRA_MODE, RefreshActivity.MODE_PAUSE)
+            putExtra(RefreshActivity.EXTRA_PORT, port)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        try {
+            val pending = PendingIntent.getActivity(
+                this,
+                0,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            try {
+                // API 36+：单参数 PendingIntent 版本（系统代发，不受后台启动限制）
+                startActivityAndCollapse(pending)
+                return
+            } catch (t: Throwable) {
+                Log.w("AdGuardTile", "single-arg startActivityAndCollapse unavailable, trying two-arg via reflection", t)
+            }
+            try {
+                // API 28-35：双参数 (PendingIntent, UserHandle) 在 SDK 36 编译期已移除，反射调用
+                val method = TileService::class.java.getMethod(
+                    "startActivityAndCollapse",
+                    PendingIntent::class.java,
+                    UserHandle::class.java
+                )
+                method.invoke(this, pending, Process.myUserHandle())
+            } catch (t2: Throwable) {
+                Log.e("AdGuardTile", "open pause chooser failed", t2)
+                updateTile(Tile.STATE_UNAVAILABLE)
+            }
+        } catch (t: Throwable) {
+            Log.e("AdGuardTile", "open pause chooser failed", t)
+            updateTile(Tile.STATE_UNAVAILABLE)
+        }
     }
 
     override fun onStartListening() {

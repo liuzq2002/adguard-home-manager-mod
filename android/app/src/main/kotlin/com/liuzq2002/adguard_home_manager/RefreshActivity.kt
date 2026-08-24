@@ -17,6 +17,8 @@ class RefreshActivity : Activity() {
         private const val TAG = "AdGuardTile"
     }
 
+    private var finished = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         when (intent?.getStringExtra(EXTRA_MODE)) {
@@ -41,7 +43,7 @@ class RefreshActivity : Activity() {
             } catch (t: Throwable) {
                 Log.e(TAG, "refresh failed", t)
             } finally {
-                runOnUiThread { finish() }
+                runOnUiThread { finishOnce() }
             }
         }.start()
     }
@@ -64,7 +66,7 @@ class RefreshActivity : Activity() {
                     pauseProtection(port, minutes[which])
                 }
             }
-            .setOnDismissListener { if (!isFinishing) finish() }
+            .setOnDismissListener { finishOnce() }
             .show()
     }
 
@@ -76,8 +78,15 @@ class RefreshActivity : Activity() {
             } catch (t: Throwable) {
                 Log.e(TAG, "pause failed", t)
             } finally {
-                runOnUiThread { finish() }
+                runOnUiThread { finishOnce() }
             }
         }.start()
+    }
+
+    private fun finishOnce() {
+        if (!finished) {
+            finished = true
+            finish()
+        }
     }
 }
