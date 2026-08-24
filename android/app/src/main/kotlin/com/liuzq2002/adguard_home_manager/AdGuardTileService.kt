@@ -1,6 +1,7 @@
 package com.liuzq2002.adguard_home_manager
 
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.drawable.Icon
 import android.net.Uri
@@ -26,6 +27,25 @@ object AdGuardModuleController {
 
         val output = runSu("cat $YAML_PATH") ?: return null
         return parsePort(output)
+    }
+
+    fun resolvePort(context: Context?): Int? {
+        val cached = readSavedAddress(context)
+        if (cached != null) return cached
+        val output = runSu("cat $YAML_PATH") ?: return null
+        return parsePort(output)
+    }
+
+    fun saveCachedPort(context: Context?, port: Int) {
+        if (context == null) return
+        try {
+            context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+                .edit()
+                .putString("flutter.moduleHttpAddress", "127.0.0.1:$port")
+                .apply()
+        } catch (t: Throwable) {
+            Log.e(TAG, "save port failed", t)
+        }
     }
 
     fun parsePort(output: String): Int? {
@@ -85,7 +105,12 @@ object AdGuardModuleController {
     }
 
     fun setProtection(port: Int, enabled: Boolean): Boolean {
-        val body = """{"enabled":$enabled,"duration":null}"""
+        return setProtection(port, enabled, null)
+    }
+
+    fun setProtection(port: Int, enabled: Boolean, durationMs: Long?): Boolean {
+        val duration = durationMs?.toString() ?: "null"
+        val body = """{"enabled":$enabled,"duration":$duration}"""
         return httpRequest(port, "/control/protection", "POST", body) != null
     }
 
@@ -160,6 +185,17 @@ class AdGuardTileService : TileService() {
                     return@Thread
                 }
                 val current = AdGuardModuleController.getProtectionState(port)
+                if (current == true) {
+                    // 保护开启中 → 打开暂停时长选择
+                    startActivity(
+                        Intent(this, RefreshActivity::class.java).apply {
+                            putExtra(RefreshActivity.EXTRA_MODE, RefreshActivity.MODE_PAUSE)
+                            putExtra(RefreshActivity.EXTRA_PORT, port)
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                    )
+                    return@Thread
+                }
                 val target = current != true
                 val ok = AdGuardModuleController.setProtection(port, target)
                 if (ok) {
