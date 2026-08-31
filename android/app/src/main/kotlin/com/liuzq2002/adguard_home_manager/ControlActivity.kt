@@ -2,15 +2,11 @@ package com.liuzq2002.adguard_home_manager
 
 import android.app.Activity
 import android.app.AlertDialog
-import android.content.ComponentName
 import android.os.Bundle
-import android.service.quicksettings.TileService
 import android.util.Log
 
 class ControlActivity : Activity() {
     companion object {
-        const val EXTRA_MODE = "mode"
-        const val MODE_REFRESH = "refresh"
         private const val TAG = "AdGuardTile"
     }
 
@@ -18,31 +14,7 @@ class ControlActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (intent?.getStringExtra(EXTRA_MODE) == MODE_REFRESH) {
-            runBootRefresh()
-        } else {
-            prepareControl()
-        }
-    }
-
-    private fun runBootRefresh() {
-        Thread {
-            try {
-                val fresh = AdGuardModuleController.resolvePort(this)
-                if (fresh != null) {
-                    AdGuardModuleController.saveCachedPort(this, fresh)
-                    Log.i(TAG, "boot refresh: port=$fresh")
-                }
-                TileService.requestListeningState(
-                    this,
-                    ComponentName(this, AdGuardTileService::class.java)
-                )
-            } catch (t: Throwable) {
-                Log.e(TAG, "refresh failed", t)
-            } finally {
-                runOnUiThread { finishOnce() }
-            }
-        }.start()
+        prepareControl()
     }
 
     private fun prepareControl() {
