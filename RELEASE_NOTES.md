@@ -19,9 +19,13 @@ AdGuard Home Manager (Mod) 是基于 JGeek00/adguard-home-manager 修改的 AdGu
 
 ## 本版变更
 
-- 仅保留 Android arm64-v8a 架构，移除 iOS / macOS / Linux / Windows / Debian 平台目录
-- 应用包名：com.liuzq2002.adguard_home_manager
-- 移除原版中与模块场景无关的功能入口，深度集成 AdGuard Home For Android 模块
+- 升级 Flutter / Dart 依赖及 Android 构建工具链（Gradle 8.14.3、AGP 8.11.1、Kotlin 2.2.20）
+- 开启 R8 混淆与资源压缩，减小 APK 体积
+- 移除主页统计中的“被拦截的恶意/钓鱼网站”“被拦截的成人网站”“客户端排行”
+- 移除日志过滤器中的“客户端”筛选入口
+- 移除日志响应状态中的“已拦截（安全浏览 / 家长过滤 / 安全搜索）”细分选项
+- 移除“过滤器”页中的“被拦截的服务”入口
+- 移除上述功能对应的无用页面，并重新生成本地化字符串
 
 ## 下载
 
