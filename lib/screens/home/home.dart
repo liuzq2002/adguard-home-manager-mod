@@ -30,8 +30,10 @@ class _HomeState extends State<Home> {
   void initState() {
     super.initState();
 
-    final serversProvider = Provider.of<ServersProvider>(context, listen: false);
-    if (serversProvider.selectedServer == null || serversProvider.apiClient2 == null) {
+    final serversProvider =
+        Provider.of<ServersProvider>(context, listen: false);
+    if (serversProvider.selectedServer == null ||
+        serversProvider.apiClient2 == null) {
       return;
     }
 
@@ -40,7 +42,8 @@ class _HomeState extends State<Home> {
       withLoadingIndicator: statusProvider.serverStatus != null ? false : true,
     );
 
-    final clientsProvider = Provider.of<ClientsProvider>(context, listen: false);
+    final clientsProvider =
+        Provider.of<ClientsProvider>(context, listen: false);
     clientsProvider.fetchClients(updateLoading: false);
   }
 
@@ -53,7 +56,8 @@ class _HomeState extends State<Home> {
 
     final width = MediaQuery.of(context).size.width;
 
-    if (serversProvider.selectedServer == null || serversProvider.apiClient2 == null) {
+    if (serversProvider.selectedServer == null ||
+        serversProvider.apiClient2 == null) {
       return Scaffold(
         body: SafeArea(
           child: Center(
@@ -97,7 +101,8 @@ class _HomeState extends State<Home> {
                 child: CustomScrollView(
                   slivers: [
                     SliverOverlapInjector(
-                      handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
+                      handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
+                          context),
                     ),
                     if (statusProvider.loadStatus == LoadStatus.loading)
                       SliverFillRemaining(
@@ -112,7 +117,9 @@ class _HomeState extends State<Home> {
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontSize: 22,
-                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
                                 ),
                               ),
                             ],
@@ -129,15 +136,24 @@ class _HomeState extends State<Home> {
                                 FractionallySizedBox(
                                   widthFactor: width > 700 ? 0.5 : 1,
                                   child: HomeChart(
-                                    data: statusProvider.serverStatus!.stats.dnsQueries,
-                                    label: AppLocalizations.of(context)!.dnsQueries,
+                                    data: statusProvider
+                                        .serverStatus!.stats.dnsQueries,
+                                    label: AppLocalizations.of(context)!
+                                        .dnsQueries,
                                     primaryValue: intFormat(
-                                      statusProvider.serverStatus!.stats.numDnsQueries,
-                                      Localizations.localeOf(context).toString(),
+                                      statusProvider
+                                          .serverStatus!.stats.numDnsQueries,
+                                      Localizations.localeOf(context)
+                                          .toString(),
                                     ),
-                                    secondaryValue: "${doubleFormat(statusProvider.serverStatus!.stats.avgProcessingTime * 1000, Localizations.localeOf(context).toString())} ms",
+                                    secondaryValue:
+                                        "${doubleFormat(statusProvider.serverStatus!.stats.avgProcessingTime * 1000, Localizations.localeOf(context).toString())} ms",
                                     color: Colors.blue,
-                                    hoursInterval: statusProvider.serverStatus!.stats.timeUnits == "days" ? 24 : 1,
+                                    hoursInterval: statusProvider.serverStatus!
+                                                .stats.timeUnits ==
+                                            "days"
+                                        ? 24
+                                        : 1,
                                     onTapTitle: () {
                                       logsProvider.setSelectedResultStatus(
                                         value: "all",
@@ -152,65 +168,29 @@ class _HomeState extends State<Home> {
                                 FractionallySizedBox(
                                   widthFactor: width > 700 ? 0.5 : 1,
                                   child: HomeChart(
-                                    data: statusProvider.serverStatus!.stats.blockedFiltering,
-                                    label: AppLocalizations.of(context)!.blockedFilters,
+                                    data: statusProvider
+                                        .serverStatus!.stats.blockedFiltering,
+                                    label: AppLocalizations.of(context)!
+                                        .blockedFilters,
                                     primaryValue: intFormat(
-                                      statusProvider.serverStatus!.stats.numBlockedFiltering,
-                                      Localizations.localeOf(context).toString(),
+                                      statusProvider.serverStatus!.stats
+                                          .numBlockedFiltering,
+                                      Localizations.localeOf(context)
+                                          .toString(),
                                     ),
-                                    secondaryValue: "${statusProvider.serverStatus!.stats.numDnsQueries > 0 ? doubleFormat((statusProvider.serverStatus!.stats.numBlockedFiltering / statusProvider.serverStatus!.stats.numDnsQueries) * 100, Localizations.localeOf(context).toString()) : 0}%",
+                                    secondaryValue:
+                                        "${statusProvider.serverStatus!.stats.numDnsQueries > 0 ? doubleFormat((statusProvider.serverStatus!.stats.numBlockedFiltering / statusProvider.serverStatus!.stats.numDnsQueries) * 100, Localizations.localeOf(context).toString()) : 0}%",
                                     color: Colors.red,
-                                    hoursInterval: statusProvider.serverStatus!.stats.timeUnits == "days" ? 24 : 1,
+                                    hoursInterval: statusProvider.serverStatus!
+                                                .stats.timeUnits ==
+                                            "days"
+                                        ? 24
+                                        : 1,
                                     onTapTitle: () {
                                       logsProvider.setSelectedResultStatus(
                                         value: "blocked",
                                         refetch: true,
                                       );
-                                      appConfigProvider.setSelectedScreen(1);
-                                    },
-                                    isDesktop: width > 700,
-                                  ),
-                                ),
-                                FractionallySizedBox(
-                                  widthFactor: width > 700 ? 0.5 : 1,
-                                  child: HomeChart(
-                                    data: statusProvider.serverStatus!.stats.replacedSafebrowsing,
-                                    label: AppLocalizations.of(context)!.malwarePhishingBlocked,
-                                    primaryValue: intFormat(
-                                      statusProvider.serverStatus!.stats.numReplacedSafebrowsing,
-                                      Localizations.localeOf(context).toString(),
-                                    ),
-                                    secondaryValue: "${statusProvider.serverStatus!.stats.numDnsQueries > 0 ? doubleFormat((statusProvider.serverStatus!.stats.numReplacedSafebrowsing / statusProvider.serverStatus!.stats.numDnsQueries) * 100, Localizations.localeOf(context).toString()) : 0}%",
-                                    color: Colors.green,
-                                    hoursInterval: statusProvider.serverStatus!.stats.timeUnits == "days" ? 24 : 1,
-                                    onTapTitle: () {
-                                      logsProvider.setSelectedResultStatus(
-                                        value: "blocked_safebrowsing",
-                                        refetch: true,
-                                      );
-                                      appConfigProvider.setSelectedScreen(1);
-                                    },
-                                    isDesktop: width > 700,
-                                  ),
-                                ),
-                                FractionallySizedBox(
-                                  widthFactor: width > 700 ? 0.5 : 1,
-                                  child: HomeChart(
-                                    data: statusProvider.serverStatus!.stats.replacedParental,
-                                    label: AppLocalizations.of(context)!.blockedAdultWebsites,
-                                    primaryValue: intFormat(
-                                      statusProvider.serverStatus!.stats.numReplacedParental,
-                                      Localizations.localeOf(context).toString(),
-                                    ),
-                                    secondaryValue: "${statusProvider.serverStatus!.stats.numDnsQueries > 0 ? doubleFormat((statusProvider.serverStatus!.stats.numReplacedParental / statusProvider.serverStatus!.stats.numDnsQueries) * 100, Localizations.localeOf(context).toString()) : 0}%",
-                                    color: Colors.orange,
-                                    hoursInterval: statusProvider.serverStatus!.stats.timeUnits == "days" ? 24 : 1,
-                                    onTapTitle: () {
-                                      logsProvider.setSelectedResultStatus(
-                                        value: "blocked_parental",
-                                        refetch: true,
-                                      );
-                                      logsProvider.filterLogs();
                                       appConfigProvider.setSelectedScreen(1);
                                     },
                                     isDesktop: width > 700,
@@ -223,7 +203,8 @@ class _HomeState extends State<Home> {
                               padding: EdgeInsets.symmetric(horizontal: 16),
                               child: CombinedHomeChart(),
                             ),
-                          TopItemsLists(order: appConfigProvider.homeTopItemsOrder),
+                          TopItemsLists(
+                              order: appConfigProvider.homeTopItemsOrder),
                           const SizedBox(height: 16),
                         ],
                       ),
@@ -240,11 +221,14 @@ class _HomeState extends State<Home> {
                               ),
                               const SizedBox(height: 30),
                               Text(
-                                AppLocalizations.of(context)!.errorLoadServerStatus,
+                                AppLocalizations.of(context)!
+                                    .errorLoadServerStatus,
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontSize: 22,
-                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
                                 ),
                               ),
                             ],

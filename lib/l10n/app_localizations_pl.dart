@@ -195,9 +195,6 @@ class AppLocalizationsPl extends AppLocalizations {
   String get viewMore => 'Zobacz więcej';
 
   @override
-  String get topClients => 'Najlepsi klienci';
-
-  @override
   String get topBlockedDomains => 'Najczęściej blokowane domeny';
 
   @override
@@ -537,13 +534,6 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get blockedFilters => 'Zablokowane przez filtry';
-
-  @override
-  String get malwarePhishingBlocked =>
-      'Zablokowane złośliwe oprogramowanie/phishing';
-
-  @override
-  String get blockedAdultWebsites => 'Zablokowane witryny dla dorosłych';
 
   @override
   String get generalSettings => 'Ustawienia główne';

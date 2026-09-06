@@ -189,9 +189,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get viewMore => '查看更多';
 
   @override
-  String get topClients => '客户端排行';
-
-  @override
   String get topBlockedDomains => '被拦截域名排行';
 
   @override
@@ -523,12 +520,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get blockedFilters => '被过滤器拦截';
-
-  @override
-  String get malwarePhishingBlocked => '被拦截的恶意/钓鱼网站';
-
-  @override
-  String get blockedAdultWebsites => '被拦截的成人网站';
 
   @override
   String get generalSettings => '常规设置';
@@ -2703,9 +2694,6 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get viewMore => '查看更多';
 
   @override
-  String get topClients => '客户端排行';
-
-  @override
   String get topBlockedDomains => '被拦截域名排行';
 
   @override
@@ -3037,12 +3025,6 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get blockedFilters => '被过滤器拦截';
-
-  @override
-  String get malwarePhishingBlocked => '被拦截的恶意/钓鱼网站';
-
-  @override
-  String get blockedAdultWebsites => '被拦截的成人网站';
 
   @override
   String get generalSettings => '常规设置';

@@ -467,12 +467,6 @@ abstract class AppLocalizations {
   /// **'View more'**
   String get viewMore;
 
-  /// No description provided for @topClients.
-  ///
-  /// In en, this message translates to:
-  /// **'Clients'**
-  String get topClients;
-
   /// No description provided for @topBlockedDomains.
   ///
   /// In en, this message translates to:
@@ -1138,18 +1132,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Blocked by filters'**
   String get blockedFilters;
-
-  /// No description provided for @malwarePhishingBlocked.
-  ///
-  /// In en, this message translates to:
-  /// **'Blocked malware/phishing'**
-  String get malwarePhishingBlocked;
-
-  /// No description provided for @blockedAdultWebsites.
-  ///
-  /// In en, this message translates to:
-  /// **'Blocked adult websites'**
-  String get blockedAdultWebsites;
 
   /// No description provided for @generalSettings.
   ///

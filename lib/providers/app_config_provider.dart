@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/scheduler.dart';
@@ -13,9 +12,7 @@ import 'package:adguard_home_manager/models/app_log.dart';
 class AppConfigProvider with ChangeNotifier {
   final SharedPreferences sharedPreferencesInstance;
 
-  AppConfigProvider({
-    required this.sharedPreferencesInstance
-  });
+  AppConfigProvider({required this.sharedPreferencesInstance});
 
   PackageInfo? _appInfo;
   AndroidDeviceInfo? _androidDeviceInfo;
@@ -73,9 +70,10 @@ class AppConfigProvider with ChangeNotifier {
   ThemeMode get selectedTheme {
     switch (_selectedTheme) {
       case 0:
-        return SchedulerBinding.instance.window.platformBrightness == Brightness.light 
-          ? ThemeMode.light 
-          : ThemeMode.dark;
+        return SchedulerBinding.instance.window.platformBrightness ==
+                Brightness.light
+            ? ThemeMode.light
+            : ThemeMode.dark;
 
       case 1:
         return ThemeMode.light;
@@ -321,7 +319,8 @@ class AppConfigProvider with ChangeNotifier {
 
   Future<bool> setHomeTopItemsOrder(List<HomeTopItems> order) async {
     try {
-      sharedPreferencesInstance.setStringList('homeTopItemsOrder', List<String>.from(order.map((e) => e.name)));
+      sharedPreferencesInstance.setStringList(
+          'homeTopItemsOrder', List<String>.from(order.map((e) => e.name)));
       _homeTopItemsOrder = order;
       notifyListeners();
       return true;
@@ -342,47 +341,54 @@ class AppConfigProvider with ChangeNotifier {
   }
 
   Future<bool> setDoNotRememberVersion(String value) async {
-    final updated = await sharedPreferencesInstance.setString('hideServerAddress', value);
+    final updated =
+        await sharedPreferencesInstance.setString('hideServerAddress', value);
     return updated;
   }
-  
+
   void saveFromSharedPreferences() {
     _selectedTheme = sharedPreferencesInstance.getInt('selectedTheme') ?? 0;
-    _overrideSslCheck = sharedPreferencesInstance.getBool('overrideSslCheck') ?? false;
-    _hideZeroValues = sharedPreferencesInstance.getBool('hideZeroValues') ?? false;
-    _useDynamicColor = sharedPreferencesInstance.getBool('useDynamicColor') ?? true;
+    _overrideSslCheck =
+        sharedPreferencesInstance.getBool('overrideSslCheck') ?? false;
+    _hideZeroValues =
+        sharedPreferencesInstance.getBool('hideZeroValues') ?? false;
+    _useDynamicColor =
+        sharedPreferencesInstance.getBool('useDynamicColor') ?? true;
     _staticColor = sharedPreferencesInstance.getInt('staticColor') ?? 0;
     _showTimeLogs = sharedPreferencesInstance.getBool('showTimeLogs') ?? false;
-    _doNotRememberVersion = sharedPreferencesInstance.getString('doNotRememberVersion');
+    _doNotRememberVersion =
+        sharedPreferencesInstance.getString('doNotRememberVersion');
     _showIpLogs = sharedPreferencesInstance.getBool('showIpLogs') ?? false;
-    _combinedChartHome = sharedPreferencesInstance.getBool('combinedChart') ?? false;
-    _hideServerAddress = sharedPreferencesInstance.getBool('hideServerAddress') ?? false;
-    _moduleHttpAddress = sharedPreferencesInstance.getString('moduleHttpAddress') ?? '';
+    _combinedChartHome =
+        sharedPreferencesInstance.getBool('combinedChart') ?? false;
+    _hideServerAddress =
+        sharedPreferencesInstance.getBool('hideServerAddress') ?? false;
+    _moduleHttpAddress =
+        sharedPreferencesInstance.getString('moduleHttpAddress') ?? '';
     if (sharedPreferencesInstance.getStringList('homeTopItemsOrder') != null) {
       try {
-        _homeTopItemsOrder = List<HomeTopItems>.from(
-          List<String>.from(sharedPreferencesInstance.getStringList('homeTopItemsOrder')!).map((e) {
-            switch (e) {
-              case 'queriedDomains':
-                return HomeTopItems.queriedDomains;
+        _homeTopItemsOrder = List<HomeTopItems>.from(List<String>.from(
+                sharedPreferencesInstance.getStringList('homeTopItemsOrder')!)
+            .map((e) {
+              switch (e) {
+                case 'queriedDomains':
+                  return HomeTopItems.queriedDomains;
 
-              case 'blockedDomains':
-                return HomeTopItems.blockedDomains;
+                case 'blockedDomains':
+                  return HomeTopItems.blockedDomains;
 
-              case 'recurrentClients':
-                return HomeTopItems.recurrentClients;
+                case 'topUpstreams':
+                  return HomeTopItems.topUpstreams;
 
-              case 'topUpstreams':
-                return HomeTopItems.topUpstreams;
+                case 'avgUpstreamResponseTime':
+                  return HomeTopItems.avgUpstreamResponseTime;
 
-              case 'avgUpstreamResponseTime':
-                return HomeTopItems.avgUpstreamResponseTime;
-
-              default:
-                return null;
-            }
-          }).where((e) => e != null).toList()
-        );
+                default:
+                  return null;
+              }
+            })
+            .where((e) => e != null)
+            .toList());
       } catch (e) {
         _homeTopItemsOrder = homeTopItemsDefaultOrder;
       }

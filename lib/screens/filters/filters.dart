@@ -6,13 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:adguard_home_manager/l10n/app_localizations.dart';
 
-
 import 'package:adguard_home_manager/screens/filters/details/check_host_modal.dart';
 import 'package:adguard_home_manager/screens/filters/filters_tabs_view.dart';
 import 'package:adguard_home_manager/screens/filters/filters_triple_column.dart';
 import 'package:adguard_home_manager/screens/filters/details/list_details_screen.dart';
 import 'package:adguard_home_manager/screens/filters/modals/remove_custom_rule_modal.dart';
-import 'package:adguard_home_manager/screens/filters/modals/blocked_services_screen.dart';
 import 'package:adguard_home_manager/screens/filters/modals/update_interval_lists_modal.dart';
 
 import 'package:adguard_home_manager/functions/snackbar.dart';
@@ -32,13 +30,15 @@ class Filters extends StatefulWidget {
 }
 
 class _FiltersState extends State<Filters> {
-  List<AutoClient> generateClientsList(List<AutoClient> clients, List<String> ips) {
+  List<AutoClient> generateClientsList(
+      List<AutoClient> clients, List<String> ips) {
     return clients.where((client) => ips.contains(client.ip)).toList();
   }
 
   @override
   void initState() {
-    final filteringProvider = Provider.of<FilteringProvider>(context, listen: false);
+    final filteringProvider =
+        Provider.of<FilteringProvider>(context, listen: false);
     filteringProvider.fetchFilters(showLoading: true);
     super.initState();
   }
@@ -59,17 +59,15 @@ class _FiltersState extends State<Filters> {
       processModal.close();
       if (result['success'] == true) {
         showSnackbar(
-          appConfigProvider: appConfigProvider,
-          label: "${result['data']['updated']} ${AppLocalizations.of(context)!.listsUpdated}", 
-          color: Colors.green
-        );
-      }
-      else {
+            appConfigProvider: appConfigProvider,
+            label:
+                "${result['data']['updated']} ${AppLocalizations.of(context)!.listsUpdated}",
+            color: Colors.green);
+      } else {
         showSnackbar(
-          appConfigProvider: appConfigProvider,
-          label: AppLocalizations.of(context)!.listsNotUpdated, 
-          color: Colors.red
-        );
+            appConfigProvider: appConfigProvider,
+            label: AppLocalizations.of(context)!.listsNotUpdated,
+            color: Colors.red);
       }
     }
 
@@ -77,15 +75,14 @@ class _FiltersState extends State<Filters> {
       Future.delayed(const Duration(seconds: 0), () {
         if (width > 700 || !(Platform.isAndroid || Platform.isIOS)) {
           showDialog(
-            context: context, 
+            context: context,
             builder: (context) => const CheckHostModal(
               dialog: true,
             ),
           );
-        }
-        else {
+        } else {
           showModalBottomSheet(
-            context: context, 
+            context: context,
             useRootNavigator: true,
             builder: (context) => const CheckHostModal(
               dialog: false,
@@ -99,11 +96,9 @@ class _FiltersState extends State<Filters> {
 
     void enableDisableFiltering() async {
       ProcessModal processModal = ProcessModal();
-      processModal.open(
-        statusProvider.serverStatus!.filteringEnabled == true
+      processModal.open(statusProvider.serverStatus!.filteringEnabled == true
           ? AppLocalizations.of(context)!.disableFiltering
-          : AppLocalizations.of(context)!.enableFiltering
-      );
+          : AppLocalizations.of(context)!.enableFiltering);
 
       final result = await filteringProvider.enableDisableFiltering();
 
@@ -111,17 +106,14 @@ class _FiltersState extends State<Filters> {
 
       if (result == true) {
         showSnackbar(
-          appConfigProvider: appConfigProvider,
-          label: AppLocalizations.of(context)!.filteringStatusUpdated, 
-          color: Colors.green
-        );
-      }
-      else {
+            appConfigProvider: appConfigProvider,
+            label: AppLocalizations.of(context)!.filteringStatusUpdated,
+            color: Colors.green);
+      } else {
         showSnackbar(
-          appConfigProvider: appConfigProvider,
-          label: AppLocalizations.of(context)!.filteringStatusNotUpdated, 
-          color: Colors.red
-        );
+            appConfigProvider: appConfigProvider,
+            label: AppLocalizations.of(context)!.filteringStatusNotUpdated,
+            color: Colors.red);
       }
     }
 
@@ -135,24 +127,15 @@ class _FiltersState extends State<Filters> {
 
       if (result == true) {
         showSnackbar(
-          appConfigProvider: appConfigProvider,
-          label: AppLocalizations.of(context)!.updateFrequencyChanged, 
-          color: Colors.green
-        );
-      }
-      else {
+            appConfigProvider: appConfigProvider,
+            label: AppLocalizations.of(context)!.updateFrequencyChanged,
+            color: Colors.green);
+      } else {
         showSnackbar(
-          appConfigProvider: appConfigProvider,
-          label: AppLocalizations.of(context)!.updateFrequencyNotChanged, 
-          color: Colors.red
-        );
+            appConfigProvider: appConfigProvider,
+            label: AppLocalizations.of(context)!.updateFrequencyNotChanged,
+            color: Colors.red);
       }
-    }
-
-    void openBlockedServices() {
-      Future.delayed(const Duration(seconds: 0), () {
-        openBlockedServicesModal(context: context, width: width);
-      });
     }
 
     void removeCustomRule(String rule) async {
@@ -164,160 +147,145 @@ class _FiltersState extends State<Filters> {
       processModal.close();
 
       if (result == true) {
-        showSnackbar( 
-          appConfigProvider: appConfigProvider,
-          label: AppLocalizations.of(context)!.ruleRemovedSuccessfully, 
-          color: Colors.green
-        );
-      }
-      else {
         showSnackbar(
-          appConfigProvider: appConfigProvider,
-          label: AppLocalizations.of(context)!.ruleNotRemoved, 
-          color: Colors.red
-        );  
+            appConfigProvider: appConfigProvider,
+            label: AppLocalizations.of(context)!.ruleRemovedSuccessfully,
+            color: Colors.green);
+      } else {
+        showSnackbar(
+            appConfigProvider: appConfigProvider,
+            label: AppLocalizations.of(context)!.ruleNotRemoved,
+            color: Colors.red);
       }
     }
 
     void openRemoveCustomRuleModal(String rule) {
       showDialog(
-        context: context, 
-        builder: (context) => RemoveCustomRule(
-          onConfirm: () => removeCustomRule(rule),
-        )
-      );
+          context: context,
+          builder: (context) => RemoveCustomRule(
+                onConfirm: () => removeCustomRule(rule),
+              ));
     }
 
     void openListDetails(Filter filter, String type) {
       if (width > 900) {
         showDialog(
-          context: context, 
+          context: context,
           builder: (context) => ListDetailsScreen(
-            listId: filter.id, 
+            listId: filter.id,
             type: type,
             dialog: width > 900 || !(Platform.isAndroid | Platform.isIOS),
           ),
         );
-      }
-      else {
-        Navigator.push(context, MaterialPageRoute(
-          builder: (context) => ListDetailsScreen(
-            listId: filter.id, 
-            type: type,
-            dialog: width > 900 || !(Platform.isAndroid | Platform.isIOS),
-          ),
-        ));
+      } else {
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ListDetailsScreen(
+                listId: filter.id,
+                type: type,
+                dialog: width > 900 || !(Platform.isAndroid | Platform.isIOS),
+              ),
+            ));
       }
     }
 
     List<Widget> actions() {
       if (filteringProvider.loadStatus == LoadStatus.loaded) {
         return [
-          if (statusProvider.loadStatus == LoadStatus.loaded) IconButton(
-            onPressed: enableDisableFiltering, 
-            tooltip: filteringProvider.filtering!.enabled == true
-              ? AppLocalizations.of(context)!.disableFiltering
-              : AppLocalizations.of(context)!.enableFiltering,
-            icon: Stack(
-              children: [
-                const Icon(Icons.power_settings_new_rounded),
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: Stack(
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(30),
-                          color: Colors.white
-                        ),
-                        child: Icon(
-                          filteringProvider.filtering!.enabled == true
-                            ? Icons.check_circle_rounded
-                            : Icons.cancel,
-                          size: 12,
-                          color: filteringProvider.filtering!.enabled == true
-                            ? appConfigProvider.useThemeColorForStatus == true
-                              ? Theme.of(context).colorScheme.primary
-                              : Colors.green
-                            : appConfigProvider.useThemeColorForStatus == true
-                              ? Colors.grey
-                              : Colors.red
-                        ),
+          if (statusProvider.loadStatus == LoadStatus.loaded)
+            IconButton(
+                onPressed: enableDisableFiltering,
+                tooltip: filteringProvider.filtering!.enabled == true
+                    ? AppLocalizations.of(context)!.disableFiltering
+                    : AppLocalizations.of(context)!.enableFiltering,
+                icon: Stack(
+                  children: [
+                    const Icon(Icons.power_settings_new_rounded),
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Stack(
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(30),
+                                color: Colors.white),
+                            child: Icon(
+                                filteringProvider.filtering!.enabled == true
+                                    ? Icons.check_circle_rounded
+                                    : Icons.cancel,
+                                size: 12,
+                                color: filteringProvider.filtering!.enabled ==
+                                        true
+                                    ? appConfigProvider
+                                                .useThemeColorForStatus ==
+                                            true
+                                        ? Theme.of(context).colorScheme.primary
+                                        : Colors.green
+                                    : appConfigProvider
+                                                .useThemeColorForStatus ==
+                                            true
+                                        ? Colors.grey
+                                        : Colors.red),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                )
-              ],
-            )
-          ),
+                    )
+                  ],
+                )),
           IconButton(
             onPressed: () {
               if (width > 900 || !(Platform.isAndroid || Platform.isIOS)) {
                 showDialog(
-                  context: context, 
+                  context: context,
                   builder: (context) => UpdateIntervalListsModal(
                     interval: filteringProvider.filtering!.interval,
                     onChange: setUpdateFrequency,
                     dialog: true,
                   ),
                 );
-              }
-              else {
+              } else {
                 showModalBottomSheet(
-                  context: context, 
-                  useRootNavigator: true,
-                  builder: (context) => UpdateIntervalListsModal(
-                    interval: filteringProvider.filtering!.interval,
-                    onChange: setUpdateFrequency,
-                    dialog: false,
-                  ),
-                  backgroundColor: Colors.transparent,
-                  isScrollControlled: true
-                );
+                    context: context,
+                    useRootNavigator: true,
+                    builder: (context) => UpdateIntervalListsModal(
+                          interval: filteringProvider.filtering!.interval,
+                          onChange: setUpdateFrequency,
+                          dialog: false,
+                        ),
+                    backgroundColor: Colors.transparent,
+                    isScrollControlled: true);
               }
-            }, 
+            },
             icon: const Icon(Icons.update_rounded),
-            tooltip:  AppLocalizations.of(context)!.updateFrequency,
+            tooltip: AppLocalizations.of(context)!.updateFrequency,
           ),
           PopupMenuButton(
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                onTap: updateLists,
-                child: Row(
-                  children: [
-                    const Icon(Icons.sync_rounded),
-                    const SizedBox(width: 10),
-                    Text(AppLocalizations.of(context)!.updateLists)
-                  ],
-                )
-              ),
-              PopupMenuItem(
-                onTap: openBlockedServices,
-                child: Row(
-                  children: [
-                    const Icon(Icons.block),
-                    const SizedBox(width: 10),
-                    Text(AppLocalizations.of(context)!.blockedServices)
-                  ],
-                )
-              ),
-              PopupMenuItem(
-                onTap: showCheckHostModal,
-                child: Row(
-                  children: [
-                    const Icon(Icons.shield_rounded),
-                    const SizedBox(width: 10),
-                    Text(AppLocalizations.of(context)!.checkHostFiltered)
-                  ],
-                )
-              ),
-            ]
-          ),
+              itemBuilder: (context) => [
+                    PopupMenuItem(
+                        onTap: updateLists,
+                        child: Row(
+                          children: [
+                            const Icon(Icons.sync_rounded),
+                            const SizedBox(width: 10),
+                            Text(AppLocalizations.of(context)!.updateLists)
+                          ],
+                        )),
+                    PopupMenuItem(
+                        onTap: showCheckHostModal,
+                        child: Row(
+                          children: [
+                            const Icon(Icons.shield_rounded),
+                            const SizedBox(width: 10),
+                            Text(
+                                AppLocalizations.of(context)!.checkHostFiltered)
+                          ],
+                        )),
+                  ]),
           const SizedBox(width: 5),
         ];
-      }
-      else {
+      } else {
         return [];
       }
     }
@@ -330,10 +298,9 @@ class _FiltersState extends State<Filters> {
             onOpenDetailsModal: openListDetails,
             actions: actions(),
           );
-        }
-        else {
+        } else {
           return FiltersTabsView(
-            appConfigProvider: appConfigProvider, 
+            appConfigProvider: appConfigProvider,
             actions: actions(),
             onRemoveCustomRule: openRemoveCustomRuleModal,
             onOpenDetailsModal: openListDetails,

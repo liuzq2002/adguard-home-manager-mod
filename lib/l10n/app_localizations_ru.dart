@@ -194,9 +194,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get viewMore => 'Показать больше';
 
   @override
-  String get topClients => 'Частые клиенты';
-
-  @override
   String get topBlockedDomains => 'Часто блокируемые домены';
 
   @override
@@ -535,13 +532,6 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get blockedFilters => 'Заблокировано\nфильтрами';
-
-  @override
-  String get malwarePhishingBlocked =>
-      'Заблокированные\nвредоносные и\nфишинговые сайты';
-
-  @override
-  String get blockedAdultWebsites => 'Заблокированные\n«взрослые» сайты';
 
   @override
   String get generalSettings => 'Основные настройки';

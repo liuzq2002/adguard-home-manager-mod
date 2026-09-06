@@ -4,8 +4,6 @@ class RoutesNames {
   static const String home = "/home";
   static const String queriedDomains = "/home/queried-domains";
   static const String blockedDomains = "/home/blocked-domains";
-  static const String recurrentClients = "/home/recurrent-clients";
-
   static const String clients = "/clients";
   static const String clientsList = "/clients/list";
   static const String clientPlaceholder = "/clients/list/placeholder";
