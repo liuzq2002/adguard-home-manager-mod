@@ -197,9 +197,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get viewMore => 'Ver más';
 
   @override
-  String get topClients => 'Clientes recurrentes';
-
-  @override
   String get topBlockedDomains => 'Dominios bloqueados';
 
   @override
@@ -540,12 +537,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get blockedFilters => 'Bloqueado por filtros';
-
-  @override
-  String get malwarePhishingBlocked => 'Malware/phising bloqueado';
-
-  @override
-  String get blockedAdultWebsites => 'Sitios para adultos bloqueados';
 
   @override
   String get generalSettings => 'Ajustes generales';

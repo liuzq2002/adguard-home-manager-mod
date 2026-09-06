@@ -1,3 +1,10 @@
 enum LoadStatus { loading, loaded, error }
-enum HomeTopItems { queriedDomains, blockedDomains, recurrentClients, topUpstreams, avgUpstreamResponseTime }
+
+enum HomeTopItems {
+  queriedDomains,
+  blockedDomains,
+  topUpstreams,
+  avgUpstreamResponseTime
+}
+
 enum CustomRulesSorting { topBottom, bottomTop }

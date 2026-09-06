@@ -195,9 +195,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get viewMore => 'Daha fazla göster';
 
   @override
-  String get topClients => 'Öne çıkan istemciler';
-
-  @override
   String get topBlockedDomains => 'En çok engellenenler';
 
   @override
@@ -534,12 +531,6 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get blockedFilters => 'Engellenen alan adları';
-
-  @override
-  String get malwarePhishingBlocked => 'Engellenen zararlı içerikler';
-
-  @override
-  String get blockedAdultWebsites => 'Engellenen yetişkin içerikler';
 
   @override
   String get generalSettings => 'Genel ayarlar';
