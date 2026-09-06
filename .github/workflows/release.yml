@@ -24,6 +24,29 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
+      - name: Validate pubspec version matches release tag
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ env.RELEASE_TAG }}
+        run: |
+          set -euo pipefail
+          PUBSPEC_VERSION="$(sed -n 's/^version: //p' pubspec.yaml | tr -d '\r' | tr -d ' ')"
+          TAG_VERSION="${RELEASE_TAG#v}"
+
+          if [[ "$TAG_VERSION" == "$PUBSPEC_VERSION" ]]; then
+            echo "Version OK: tag ${RELEASE_TAG} matches pubspec ${PUBSPEC_VERSION}"
+          else
+            TAG_BASE="${TAG_VERSION%%+*}"
+            PUB_BASE="${PUBSPEC_VERSION%%+*}"
+            if [[ "$TAG_BASE" == "$PUB_BASE" ]]; then
+              echo "Version OK: tag ${RELEASE_TAG} matches pubspec ${PUBSPEC_VERSION} (build number taken from pubspec)"
+            else
+              echo "::error::Release tag '${RELEASE_TAG}' does not match pubspec version '${PUBSPEC_VERSION}'."
+              echo "::error::Bump pubspec.yaml (e.g. version: ${TAG_VERSION}) and commit it before releasing."
+              exit 1
+            fi
+          fi
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -77,9 +100,5 @@ jobs:
         with:
           tag_name: ${{ env.RELEASE_TAG }}
           name: AdGuard Home Manager Mod ${{ env.RELEASE_TAG }}
-          body: |
-            Automated release for ${{ env.RELEASE_TAG }}
-            
-            ## Changes
-            See commit history for details.
+          body_path: RELEASE_NOTES.md
           files: build/app/outputs/flutter-apk/app-release.apk
