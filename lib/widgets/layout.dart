@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:animations/animations.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_miuix/miuix.dart';
 import 'package:adguard_home_manager/l10n/app_localizations.dart';
-
 
 import 'package:adguard_home_manager/widgets/system_ui_overlay_style.dart';
 
@@ -13,7 +13,7 @@ import 'package:adguard_home_manager/providers/servers_provider.dart';
 
 class Layout extends StatefulWidget {
   const Layout({
-    super.key, 
+    super.key,
   });
 
   @override
@@ -24,7 +24,8 @@ class _LayoutState extends State<Layout> with WidgetsBindingObserver {
   bool _drawerExpanded = true;
 
   void _goBranch(int index) {
-    Provider.of<AppConfigProvider>(context, listen: false).setSelectedScreen(index);
+    Provider.of<AppConfigProvider>(context, listen: false)
+        .setSelectedScreen(index);
   }
 
   @override
@@ -32,7 +33,7 @@ class _LayoutState extends State<Layout> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
 
     super.initState();
-      
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       // if (kDebugMode) return;   // Don't check for app updates on debug mode
       // final appConfigProvider = Provider.of<AppConfigProvider>(context, listen: false);
@@ -44,14 +45,14 @@ class _LayoutState extends State<Layout> with WidgetsBindingObserver {
       // );
       // if (result != null && appConfigProvider.doNotRememberVersion != result.tagName && mounted) {
       //   await showDialog(
-      //     context: context, 
+      //     context: context,
       //     builder: (context) => UpdateModal(
       //       gitHubRelease: result,
       //       onDownload: (link, version) => openUrl(link),
       //     ),
       //   );
       // }
-    }); 
+    });
   }
 
   @override
@@ -61,9 +62,10 @@ class _LayoutState extends State<Layout> with WidgetsBindingObserver {
     final serversProvider = Provider.of<ServersProvider>(context);
     final appConfigProvider = Provider.of<AppConfigProvider>(context);
 
-    final screens = serversProvider.selectedServer != null && serversProvider.apiClient2 != null
-      ? screensServerConnected
-      : screensSelectServer;
+    final screens = serversProvider.selectedServer != null &&
+            serversProvider.apiClient2 != null
+        ? screensServerConnected
+        : screensSelectServer;
 
     String translatedName(String key) {
       switch (key) {
@@ -100,91 +102,89 @@ class _LayoutState extends State<Layout> with WidgetsBindingObserver {
                       children: [
                         Padding(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 8, 
-                            vertical: 16
-                          ),
+                              horizontal: 8, vertical: 16),
                           child: IconButton(
-                            onPressed: () => setState(() => _drawerExpanded = !_drawerExpanded), 
+                            onPressed: () => setState(
+                                () => _drawerExpanded = !_drawerExpanded),
                             icon: const Icon(Icons.menu_open_rounded),
                             tooltip: _drawerExpanded == true
-                              ? AppLocalizations.of(context)!.closeMenu
-                              : AppLocalizations.of(context)!.openMenu,
+                                ? AppLocalizations.of(context)!.closeMenu
+                                : AppLocalizations.of(context)!.openMenu,
                           ),
                         ),
                       ],
                     ),
                     ...screens.asMap().entries.map(
-                      (s) => DrawerTile(
-                        icon: s.value.icon,
-                        title: translatedName(s.value.name),
-                        isSelected: appConfigProvider.selectedScreen == s.key,
-                        onSelect: () => _goBranch(s.key),
-                        withoutTitle: !_drawerExpanded,
-                      ),
-                    ),
+                          (s) => DrawerTile(
+                            icon: s.value.icon,
+                            title: translatedName(s.value.name),
+                            isSelected:
+                                appConfigProvider.selectedScreen == s.key,
+                            onSelect: () => _goBranch(s.key),
+                            withoutTitle: !_drawerExpanded,
+                          ),
+                        ),
                   ],
                 ),
               ),
               Expanded(
                 child: PageTransitionSwitcher(
                   duration: const Duration(milliseconds: 200),
-                  transitionBuilder: (
-                    (child, primaryAnimation, secondaryAnimation) => FadeThroughTransition(
-                      animation: primaryAnimation, 
-                      secondaryAnimation: secondaryAnimation,
-                      child: child,
-                    )
-                  ),
+                  transitionBuilder:
+                      ((child, primaryAnimation, secondaryAnimation) =>
+                          FadeThroughTransition(
+                            animation: primaryAnimation,
+                            secondaryAnimation: secondaryAnimation,
+                            child: child,
+                          )),
                   child: appConfigProvider.selectedScreen < screens.length
-                    ? screens[appConfigProvider.selectedScreen].child
-                    : screens[0].child,
+                      ? screens[appConfigProvider.selectedScreen].child
+                      : screens[0].child,
                 ),
               ),
             ],
           ),
         ),
       );
-    }
-    else {
-      final screens = serversProvider.selectedServer != null && serversProvider.apiClient2 != null
-        ? screensServerConnected 
-        : screensSelectServer;
+    } else {
+      final screens = serversProvider.selectedServer != null &&
+              serversProvider.apiClient2 != null
+          ? screensServerConnected
+          : screensSelectServer;
+
+      final currentIndex = (serversProvider.selectedServer == null ||
+                  serversProvider.apiClient2 == null) &&
+              appConfigProvider.selectedScreen > 1
+          ? 0
+          : appConfigProvider.selectedScreen;
 
       return OverlayStyle(
         child: Scaffold(
-          body: PageTransitionSwitcher(
-            duration: const Duration(milliseconds: 200),
-            transitionBuilder: (
-              (child, primaryAnimation, secondaryAnimation) => FadeThroughTransition(
-                animation: primaryAnimation, 
-                secondaryAnimation: secondaryAnimation,
-                child: child,
-              )
+            body: PageTransitionSwitcher(
+              duration: const Duration(milliseconds: 200),
+              transitionBuilder:
+                  ((child, primaryAnimation, secondaryAnimation) =>
+                      FadeThroughTransition(
+                        animation: primaryAnimation,
+                        secondaryAnimation: secondaryAnimation,
+                        child: child,
+                      )),
+              child: appConfigProvider.selectedScreen < screens.length
+                  ? screens[appConfigProvider.selectedScreen].child
+                  : screens[0].child,
             ),
-            child: appConfigProvider.selectedScreen < screens.length
-              ? screens[appConfigProvider.selectedScreen].child
-              : screens[0].child,
-          ),
-          bottomNavigationBar: NavigationBar(
-            selectedIndex: (serversProvider.selectedServer == null || serversProvider.apiClient2 == null) && appConfigProvider.selectedScreen > 1
-              ? 0
-              : appConfigProvider.selectedScreen,
-            onDestinationSelected: (s) => _goBranch(s),
-            destinations: screens.asMap().entries.map((screen) => NavigationDestination(
-              icon: Stack(
-                children: [
-                  Icon(
-                    screen.value.icon,
-                    color: appConfigProvider.selectedScreen == screen.key
-                      ? Theme.of(context).colorScheme.onSecondaryContainer
-                      : Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ],
-              ), 
-              label: translatedName(screen.value.name)
-            )).toList(),
-          )
-        ),
+            bottomNavigationBar: MiuixNavigationBar(
+              children: screens
+                  .asMap()
+                  .entries
+                  .map((screen) => MiuixNavigationBarItem(
+                        selected: currentIndex == screen.key,
+                        onPressed: () => _goBranch(screen.key),
+                        icon: Icon(screen.value.icon),
+                        label: translatedName(screen.value.name),
+                      ))
+                  .toList(),
+            )),
       );
     }
   }

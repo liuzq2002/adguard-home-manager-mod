@@ -17,7 +17,14 @@ AdGuard Home Manager (Mod) 是基于 JGeek00/adguard-home-manager 修改的 AdGu
 - 通知栏快捷磁贴开关
 - 日志、统计、DNS、DNS 重写等核心设置
 
-## 本版变更
+## 本版变更（v2.24.0）
+
+- 引入 MIUIX（HyperOS 风格）设计：应用级主题配色、底部导航栏、主页主开关卡片与通用开关控件
+- 移除服务器版本校验：自定义核心的日期版本号（如 v2026-09-23）不再被误判为版本过低，也不会再弹出“不支持的服务器版本”
+- 优化：删除版本校验相关死代码与无用页面；MIUIX 配色按种子色缓存，避免每次重建重复计算；主页图表加入 RepaintBoundary，降低滚动时的重绘开销
+- 发布流程：release workflow 会校验 pubspec 版本与 tag 是否一致，并自动使用本文件作为 Release 说明
+
+## 上一版变更（v2.23.0）
 
 - 升级 Flutter / Dart 依赖及 Android 构建工具链（Gradle 8.14.3、AGP 8.11.1、Kotlin 2.2.20）
 - 开启 R8 混淆与资源压缩，减小 APK 体积
