@@ -193,6 +193,7 @@ class _SettingsWidgetState extends State<_SettingsWidget> {
                                   controller: _proxyUrlController,
                                   enabled: !_proxyUrlSaving,
                                   decoration: InputDecoration(
+                                    hintText: '填写代理订阅链接到此处',
                                     suffixIcon: IconButton(
                                       icon: _proxyUrlSaving
                                           ? const SizedBox(
