@@ -1398,7 +1398,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get defaultDescription =>
-      '当按照 Adblock 样式规则被拦截时，返回零 IP 地址（0.0.0.0 对应 A；:: 对应 AAAA）；当按照 /etc/hosts 样式规则被拦截时，返回规则中指定的 IP 地址';
+      '按 Adblock 规则拦截时返回 0.0.0.0 / ::；按 /etc/hosts 规则拦截时返回规则中指定的 IP';
 
   @override
   String get refusedDescription => '返回 REFUSED 代码';
@@ -3900,7 +3900,7 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get defaultDescription =>
-      '当按照 Adblock 样式规则被拦截时，返回零 IP 地址（0.0.0.0 对应 A；:: 对应 AAAA）；当按照 /etc/hosts 样式规则被拦截时，返回规则中指定的 IP 地址';
+      '按 Adblock 规则拦截时返回 0.0.0.0 / ::；按 /etc/hosts 规则拦截时返回规则中指定的 IP';
 
   @override
   String get refusedDescription => '返回 REFUSED 代码';

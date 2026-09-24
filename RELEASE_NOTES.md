@@ -17,7 +17,13 @@ AdGuard Home Manager (Mod) 是基于 JGeek00/adguard-home-manager 修改的 AdGu
 - 通知栏快捷磁贴开关
 - 日志、统计、DNS、DNS 重写等核心设置
 
-## 本版变更（v2.24.1）
+## 本版变更（v2.24.2）
+
+- 修复输入框浮动标签卡在边框上的问题：统一输入框边框/标签样式，PROXY_URL 改为标题在上、输入框在下
+- PROXY_URL 去掉示例占位符，空状态不再显示假链接，保存后直接显示订阅链接
+- 拦截模式只保留“默认”，移除 REFUSED / NXDOMAIN / 空 IP / 自定义 IP，并精简说明文案
+
+## 上一版变更（v2.24.1）
 
 - 全局 MIUIX 化：Material 主题改为由 MIUIX / Monet 配色生成，AppBar、对话框、卡片、Chip、输入框、Snackbar、底部弹层等统一为 HyperOS 风格的平面化 + 大圆角
 - 通用控件换成 MIUIX：开关、复选框、单选框、底部导航、主页主开关卡片
