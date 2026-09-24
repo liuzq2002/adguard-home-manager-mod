@@ -131,77 +131,85 @@ class _HomeState extends State<Home> {
                         children: [
                           const ProtectionSwitch(),
                           if (appConfigProvider.combinedChartHome == false)
-                            Wrap(
-                              children: [
-                                FractionallySizedBox(
-                                  widthFactor: width > 700 ? 0.5 : 1,
-                                  child: HomeChart(
-                                    data: statusProvider
-                                        .serverStatus!.stats.dnsQueries,
-                                    label: AppLocalizations.of(context)!
-                                        .dnsQueries,
-                                    primaryValue: intFormat(
-                                      statusProvider
-                                          .serverStatus!.stats.numDnsQueries,
-                                      Localizations.localeOf(context)
-                                          .toString(),
+                            RepaintBoundary(
+                              child: Wrap(
+                                children: [
+                                  FractionallySizedBox(
+                                    widthFactor: width > 700 ? 0.5 : 1,
+                                    child: HomeChart(
+                                      data: statusProvider
+                                          .serverStatus!.stats.dnsQueries,
+                                      label: AppLocalizations.of(context)!
+                                          .dnsQueries,
+                                      primaryValue: intFormat(
+                                        statusProvider
+                                            .serverStatus!.stats.numDnsQueries,
+                                        Localizations.localeOf(context)
+                                            .toString(),
+                                      ),
+                                      secondaryValue:
+                                          "${doubleFormat(statusProvider.serverStatus!.stats.avgProcessingTime * 1000, Localizations.localeOf(context).toString())} ms",
+                                      color: Colors.blue,
+                                      hoursInterval: statusProvider
+                                                  .serverStatus!
+                                                  .stats
+                                                  .timeUnits ==
+                                              "days"
+                                          ? 24
+                                          : 1,
+                                      onTapTitle: () {
+                                        logsProvider.setSelectedResultStatus(
+                                          value: "all",
+                                          refetch: true,
+                                        );
+                                        logsProvider.filterLogs();
+                                        appConfigProvider.setSelectedScreen(1);
+                                      },
+                                      isDesktop: width > 700,
                                     ),
-                                    secondaryValue:
-                                        "${doubleFormat(statusProvider.serverStatus!.stats.avgProcessingTime * 1000, Localizations.localeOf(context).toString())} ms",
-                                    color: Colors.blue,
-                                    hoursInterval: statusProvider.serverStatus!
-                                                .stats.timeUnits ==
-                                            "days"
-                                        ? 24
-                                        : 1,
-                                    onTapTitle: () {
-                                      logsProvider.setSelectedResultStatus(
-                                        value: "all",
-                                        refetch: true,
-                                      );
-                                      logsProvider.filterLogs();
-                                      appConfigProvider.setSelectedScreen(1);
-                                    },
-                                    isDesktop: width > 700,
                                   ),
-                                ),
-                                FractionallySizedBox(
-                                  widthFactor: width > 700 ? 0.5 : 1,
-                                  child: HomeChart(
-                                    data: statusProvider
-                                        .serverStatus!.stats.blockedFiltering,
-                                    label: AppLocalizations.of(context)!
-                                        .blockedFilters,
-                                    primaryValue: intFormat(
-                                      statusProvider.serverStatus!.stats
-                                          .numBlockedFiltering,
-                                      Localizations.localeOf(context)
-                                          .toString(),
+                                  FractionallySizedBox(
+                                    widthFactor: width > 700 ? 0.5 : 1,
+                                    child: HomeChart(
+                                      data: statusProvider
+                                          .serverStatus!.stats.blockedFiltering,
+                                      label: AppLocalizations.of(context)!
+                                          .blockedFilters,
+                                      primaryValue: intFormat(
+                                        statusProvider.serverStatus!.stats
+                                            .numBlockedFiltering,
+                                        Localizations.localeOf(context)
+                                            .toString(),
+                                      ),
+                                      secondaryValue:
+                                          "${statusProvider.serverStatus!.stats.numDnsQueries > 0 ? doubleFormat((statusProvider.serverStatus!.stats.numBlockedFiltering / statusProvider.serverStatus!.stats.numDnsQueries) * 100, Localizations.localeOf(context).toString()) : 0}%",
+                                      color: Colors.red,
+                                      hoursInterval: statusProvider
+                                                  .serverStatus!
+                                                  .stats
+                                                  .timeUnits ==
+                                              "days"
+                                          ? 24
+                                          : 1,
+                                      onTapTitle: () {
+                                        logsProvider.setSelectedResultStatus(
+                                          value: "blocked",
+                                          refetch: true,
+                                        );
+                                        appConfigProvider.setSelectedScreen(1);
+                                      },
+                                      isDesktop: width > 700,
                                     ),
-                                    secondaryValue:
-                                        "${statusProvider.serverStatus!.stats.numDnsQueries > 0 ? doubleFormat((statusProvider.serverStatus!.stats.numBlockedFiltering / statusProvider.serverStatus!.stats.numDnsQueries) * 100, Localizations.localeOf(context).toString()) : 0}%",
-                                    color: Colors.red,
-                                    hoursInterval: statusProvider.serverStatus!
-                                                .stats.timeUnits ==
-                                            "days"
-                                        ? 24
-                                        : 1,
-                                    onTapTitle: () {
-                                      logsProvider.setSelectedResultStatus(
-                                        value: "blocked",
-                                        refetch: true,
-                                      );
-                                      appConfigProvider.setSelectedScreen(1);
-                                    },
-                                    isDesktop: width > 700,
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           if (appConfigProvider.combinedChartHome == true)
-                            const Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 16),
-                              child: CombinedHomeChart(),
+                            const RepaintBoundary(
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 16),
+                                child: CombinedHomeChart(),
+                              ),
                             ),
                           TopItemsLists(
                               order: appConfigProvider.homeTopItemsOrder),

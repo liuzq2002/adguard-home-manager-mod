@@ -10,9 +10,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:adguard_home_manager/l10n/app_localizations.dart';
 
-
 import 'package:adguard_home_manager/widgets/layout.dart';
 import 'package:adguard_home_manager/widgets/menu_bar.dart';
+import 'package:adguard_home_manager/widgets/miuix_theme_scope.dart';
 
 import 'package:adguard_home_manager/providers/logs_provider.dart';
 import 'package:adguard_home_manager/providers/app_config_provider.dart';
@@ -35,10 +35,9 @@ void main() async {
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
   final sharedPreferences = await SharedPreferences.getInstance();
-  
-  final AppConfigProvider appConfigProvider = AppConfigProvider(
-    sharedPreferencesInstance: sharedPreferences
-  );
+
+  final AppConfigProvider appConfigProvider =
+      AppConfigProvider(sharedPreferencesInstance: sharedPreferences);
   final ServersProvider serversProvider = ServersProvider();
   final StatusProvider statusProvider = StatusProvider();
   final ClientsProvider clientsProvider = ClientsProvider();
@@ -80,68 +79,52 @@ void main() async {
     }
   }
 
-  void startApp() => runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(
-          create: ((context) => serversProvider)
-        ),
-        ChangeNotifierProvider(
-          create: ((context) => appConfigProvider)
-        ),
-        ChangeNotifierProvider(
-          create: ((context) => statusProvider)
-        ),
-        ChangeNotifierProvider(
-          create: ((context) => clientsProvider)
-        ),
-        ChangeNotifierProvider(
-          create: ((context) => logsProvider)
-        ),
-        ChangeNotifierProvider(
-          create: ((context) => filtersProvider)
-        ),
-        ChangeNotifierProvider(
-          create: ((context) => dhcpProvider)
-        ),
-        ChangeNotifierProvider(
-          create: ((context) => rewriteRulesProvider)
-        ),
-        ChangeNotifierProvider(
-          create: ((context) => dnsProvider)
-        ),
-        ChangeNotifierProxyProvider2<ServersProvider, StatusProvider, ClientsProvider>(
-          create: (context) => clientsProvider, 
-          update: (context, servers, status, clients) => clients!..update(servers, status),
-        ),
-        ChangeNotifierProxyProvider2<ServersProvider, StatusProvider, FilteringProvider>(
-          create: (context) => filtersProvider, 
-          update: (context, servers, status, filtering) => filtering!..update(servers, status),
-        ),
-        ChangeNotifierProxyProvider<ServersProvider, StatusProvider>(
-          create: (context) => statusProvider, 
-          update: (context, servers, status) => status!..update(servers),
-        ),
-        ChangeNotifierProxyProvider<ServersProvider, LogsProvider>(
-          create: (context) => logsProvider, 
-          update: (context, servers, logs) => logs!..update(servers),
-        ),
-        ChangeNotifierProxyProvider<ServersProvider, DhcpProvider>(
-          create: (context) => dhcpProvider, 
-          update: (context, servers, dhcp) => dhcp!..update(servers),
-        ),
-        ChangeNotifierProxyProvider<ServersProvider, RewriteRulesProvider>(
-          create: (context) => rewriteRulesProvider, 
-          update: (context, servers, rewrite) => rewrite!..update(servers),
-        ),
-        ChangeNotifierProxyProvider<ServersProvider, DnsProvider>(
-          create: (context) => dnsProvider, 
-          update: (context, servers, dns) => dns!..update(servers),
-        ),
-      ],
-      child: const Main(),
-    )
-  );
+  void startApp() => runApp(MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: ((context) => serversProvider)),
+          ChangeNotifierProvider(create: ((context) => appConfigProvider)),
+          ChangeNotifierProvider(create: ((context) => statusProvider)),
+          ChangeNotifierProvider(create: ((context) => clientsProvider)),
+          ChangeNotifierProvider(create: ((context) => logsProvider)),
+          ChangeNotifierProvider(create: ((context) => filtersProvider)),
+          ChangeNotifierProvider(create: ((context) => dhcpProvider)),
+          ChangeNotifierProvider(create: ((context) => rewriteRulesProvider)),
+          ChangeNotifierProvider(create: ((context) => dnsProvider)),
+          ChangeNotifierProxyProvider2<ServersProvider, StatusProvider,
+              ClientsProvider>(
+            create: (context) => clientsProvider,
+            update: (context, servers, status, clients) =>
+                clients!..update(servers, status),
+          ),
+          ChangeNotifierProxyProvider2<ServersProvider, StatusProvider,
+              FilteringProvider>(
+            create: (context) => filtersProvider,
+            update: (context, servers, status, filtering) =>
+                filtering!..update(servers, status),
+          ),
+          ChangeNotifierProxyProvider<ServersProvider, StatusProvider>(
+            create: (context) => statusProvider,
+            update: (context, servers, status) => status!..update(servers),
+          ),
+          ChangeNotifierProxyProvider<ServersProvider, LogsProvider>(
+            create: (context) => logsProvider,
+            update: (context, servers, logs) => logs!..update(servers),
+          ),
+          ChangeNotifierProxyProvider<ServersProvider, DhcpProvider>(
+            create: (context) => dhcpProvider,
+            update: (context, servers, dhcp) => dhcp!..update(servers),
+          ),
+          ChangeNotifierProxyProvider<ServersProvider, RewriteRulesProvider>(
+            create: (context) => rewriteRulesProvider,
+            update: (context, servers, rewrite) => rewrite!..update(servers),
+          ),
+          ChangeNotifierProxyProvider<ServersProvider, DnsProvider>(
+            create: (context) => dnsProvider,
+            update: (context, servers, dns) => dns!..update(servers),
+          ),
+        ],
+        child: const Main(),
+      ));
 
   startApp();
 }
@@ -155,40 +138,63 @@ class Main extends StatelessWidget {
 
     return DynamicColorBuilder(
       builder: (lightDynamic, darkDynamic) {
-        appConfigProvider.setSupportsDynamicTheme(lightDynamic != null && darkDynamic != null);
-        return MaterialApp(
-          title: 'AdGuard Home Manager',
-          theme: lightDynamic != null
-            ? appConfigProvider.useDynamicColor == true
-              ? lightTheme(lightDynamic)
-              : lightThemeOldVersions(colors[appConfigProvider.staticColor])
-            : lightThemeOldVersions(colors[appConfigProvider.staticColor]),
-          darkTheme: darkDynamic != null
-            ? appConfigProvider.useDynamicColor == true
-              ? darkTheme(darkDynamic)
-              : darkThemeOldVersions(colors[appConfigProvider.staticColor])
-            : darkThemeOldVersions(colors[appConfigProvider.staticColor]),
-          themeMode: appConfigProvider.selectedTheme,
-          debugShowCheckedModeBanner: false,
-          localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-            AppLocalizations.delegate,
-          ],
-          supportedLocales: const [
-            Locale('en', ''),
-            Locale('zh', ''),
-            Locale('zh', 'CN'),
-          ],
-          scaffoldMessengerKey: scaffoldMessengerKey,
-          navigatorKey: globalNavigatorKey,
-          builder: (context, child) => CustomMenuBar(
-            child: child!,
+        final supportsDynamicTheme =
+            lightDynamic != null && darkDynamic != null;
+        appConfigProvider.setSupportsDynamicTheme(supportsDynamicTheme);
+
+        final themeMode = appConfigProvider.selectedTheme;
+        final brightness = switch (themeMode) {
+          ThemeMode.light => Brightness.light,
+          ThemeMode.dark => Brightness.dark,
+          ThemeMode.system => MediaQuery.platformBrightnessOf(context),
+        };
+
+        final staticSeed = colors[appConfigProvider.staticColor];
+        final useMonet =
+            appConfigProvider.useDynamicColor == true && supportsDynamicTheme;
+        final lightSeed = useMonet ? lightDynamic.primary : staticSeed;
+        final darkSeed = useMonet ? darkDynamic.primary : staticSeed;
+
+        return MiuixThemeScope(
+          lightSeed: lightSeed,
+          darkSeed: darkSeed,
+          brightness: brightness,
+          child: MaterialApp(
+            title: 'AdGuard Home Manager',
+            theme: lightDynamic != null
+                ? appConfigProvider.useDynamicColor == true
+                    ? lightTheme(lightDynamic)
+                    : lightThemeOldVersions(
+                        colors[appConfigProvider.staticColor])
+                : lightThemeOldVersions(colors[appConfigProvider.staticColor]),
+            darkTheme: darkDynamic != null
+                ? appConfigProvider.useDynamicColor == true
+                    ? darkTheme(darkDynamic)
+                    : darkThemeOldVersions(
+                        colors[appConfigProvider.staticColor])
+                : darkThemeOldVersions(colors[appConfigProvider.staticColor]),
+            themeMode: themeMode,
+            debugShowCheckedModeBanner: false,
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+              AppLocalizations.delegate,
+            ],
+            supportedLocales: const [
+              Locale('en', ''),
+              Locale('zh', ''),
+              Locale('zh', 'CN'),
+            ],
+            scaffoldMessengerKey: scaffoldMessengerKey,
+            navigatorKey: globalNavigatorKey,
+            builder: (context, child) => CustomMenuBar(
+              child: child!,
+            ),
+            home: const Layout(),
           ),
-          home: const Layout(),
         );
-      }
+      },
     );
   }
 }
