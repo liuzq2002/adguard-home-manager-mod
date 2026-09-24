@@ -17,8 +17,11 @@ AdGuard Home Manager (Mod) 是基于 JGeek00/adguard-home-manager 修改的 AdGu
 - 通知栏快捷磁贴开关
 - 日志、统计、DNS、DNS 重写等核心设置
 
-## 预发布 v2.24.1Pre（清理未使用代码）
+## 预发布 v2.24.1-pre.2（清理未使用代码 + 构建优化）
 
+- 产物命名规范：`adguard-home-manager-mod-{tag}.apk`（例如 `adguard-home-manager-mod-v2.24.0.apk`），不再带 ABI 后缀
+- 构建优化：资源语言裁剪（仅保留 en / zh）、`nonTransitiveRClass=true`、minSdk 26 下关闭 v1 签名
+- 发布流程拆分：正式版（`release.yml`）与预发布（`prerelease.yml`）分开，上传带重试且上传后校验资源是否存在
 - 修复精简核心兼容性：服务器状态不再强制请求已移除的 `/safesearch/status`，安全浏览/家长控制等可选接口失败时按默认值处理，不会再出现「无法加载服务器状态」
 - 修复精简核心兼容性：`/stats` 缺少 `num_replaced_safesearch` 字段时不再解析报错
 - 移除客户端列表相关功能与接口（`/clients`、`/access/list`、`/clients/add|update|delete`、`/access/set`）
@@ -27,7 +30,7 @@ AdGuard Home Manager (Mod) 是基于 JGeek00/adguard-home-manager 修改的 AdGu
 - 删除 30+ 个无引用文件：legacy HTTP API（`http_requests.dart`）、未接入的安全搜索设置页、主题弹窗、通用/高级/访问设置页、服务器更新页、管理弹窗、侧边导航栏等
 - 删除 20+ 个无引用方法与工具函数（各 Provider 中的死 setter、无引用格式化/判断函数）
 - 移除不再被引用的依赖：`flutter_html`、`markdown`、`flutter_reorderable_list`
-- 内部版本 2.24.1+162：版本名对齐预发布 tag（v2.24.1Pre），`+build` 只增不减（+161 已被上一版占用）
+- 内部版本 2.24.1+163：版本名对齐预发布 tag，`+build` 只增不减（此前已用到 +162）
 
 ## 正式版 v2.24.0
 

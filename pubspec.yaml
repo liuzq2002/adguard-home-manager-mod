@@ -21,7 +21,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # of the product and file versions while build-number is used as the build suffix.
 # 正式版本号以 git tag 为准（当前 v2.24.0）；内部版本名跟随预发布 tag（2.24.1）。
 # +build 必须单调递增（当前 162），即使版本名回退也不能减小，否则无法覆盖安装。
-version: 2.24.1+162
+version: 2.24.1+163
 
 environment:
   sdk: '>=3.4.0 <4.0.0'

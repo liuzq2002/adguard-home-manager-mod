@@ -62,6 +62,8 @@ android {
         targetSdkVersion 36
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
+        // 应用只提供 en / zh / zh-CN，裁剪其它语言的库资源以减小体积
+        resourceConfigurations += ["en", "zh"]
         ndk {
             abiFilters "arm64-v8a"
         }
@@ -73,6 +75,9 @@ android {
             keyPassword keystoreProperties['keyPassword']
             storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
             storePassword keystoreProperties['storePassword']
+            // minSdk 26 起只需要 v2 签名，省掉 v1 签名块
+            enableV1Signing false
+            enableV2Signing true
         }
     }
 
