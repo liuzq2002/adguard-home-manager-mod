@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_miuix/miuix.dart';
 
 class CustomSwitchListTile extends StatelessWidget {
   final bool value;
@@ -26,12 +27,11 @@ class CustomSwitchListTile extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: disabled != null && disabled == true
-          ? null
-          : () => onChanged(!value),
+            ? null
+            : () => onChanged(!value),
         child: Padding(
-          padding: padding ?? const EdgeInsets.only(
-            top: 12, left: 16, right: 18, bottom: 16
-          ),
+          padding: padding ??
+              const EdgeInsets.only(top: 12, left: 16, right: 18, bottom: 16),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -51,22 +51,27 @@ class CustomSwitchListTile extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 16,
                         color: disabled != null && disabled == true
-                            ? Theme.of(context).colorScheme.onSurface.withOpacity(0.38)
+                            ? Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withOpacity(0.38)
                             : Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
-                    if (subtitle != null) ... [
+                    if (subtitle != null) ...[
                       const SizedBox(height: 5),
                       SizedBox(
-                        width: MediaQuery.of(context).size.width-110,
+                        width: MediaQuery.of(context).size.width - 110,
                         child: Text(
                           subtitle!,
                           style: TextStyle(
-                            fontSize: 14,
-                            color: disabled != null && disabled == true
-                              ? Theme.of(context).listTileTheme.textColor!.withOpacity(0.38)
-                              : Theme.of(context).listTileTheme.textColor
-                          ),
+                              fontSize: 14,
+                              color: disabled != null && disabled == true
+                                  ? Theme.of(context)
+                                      .listTileTheme
+                                      .textColor!
+                                      .withOpacity(0.38)
+                                  : Theme.of(context).listTileTheme.textColor),
                         ),
                       ),
                     ]
@@ -74,11 +79,10 @@ class CustomSwitchListTile extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 16),
-              Switch(
-                value: value, 
-                onChanged: disabled != null && disabled == true
-                  ? null
-                  : onChanged,
+              MiuixSwitch(
+                value: value,
+                enabled: !(disabled != null && disabled == true),
+                onChanged: onChanged,
               )
             ],
           ),
