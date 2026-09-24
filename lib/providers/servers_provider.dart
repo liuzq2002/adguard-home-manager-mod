@@ -56,11 +56,6 @@ class ServersProvider with ChangeNotifier {
     _dbInstance = db;
   }
 
-  void addServer(Server server) {
-    _serversList.add(server);
-    notifyListeners();
-  }
-
   void setSelectedServer(Server? server) {
     _selectedServer = server;
     notifyListeners();
@@ -134,18 +129,15 @@ class ServersProvider with ChangeNotifier {
           _serversList.add(server);
           notifyListeners();
           return null;
-        }
-        else {
+        } else {
           return defaultServer;
         }
-      }
-      else {
+      } else {
         _serversList.add(server);
         notifyListeners();
         return null;
       }
-    }
-    else {
+    } else {
       return saved;
     }
   }
@@ -157,8 +149,7 @@ class ServersProvider with ChangeNotifier {
         if (s.id == server.id) {
           s.defaultServer = true;
           return s;
-        }
-        else {
+        } else {
           s.defaultServer = false;
           return s;
         }
@@ -166,8 +157,7 @@ class ServersProvider with ChangeNotifier {
       _serversList = newServers;
       notifyListeners();
       return null;
-    }
-    else {
+    } else {
       return updated;
     }
   }
@@ -178,22 +168,20 @@ class ServersProvider with ChangeNotifier {
       List<Server> newServers = _serversList.map((s) {
         if (s.id == server.id) {
           return server;
-        }
-        else {
+        } else {
           return s;
         }
       }).toList();
       _serversList = newServers;
 
-      if (selectedServer != null &&server.id == selectedServer!.id) {
+      if (selectedServer != null && server.id == selectedServer!.id) {
         // _apiClient = ApiClient(server: server);
         _apiClient2 = ApiClientV2(server: server);
       }
 
       notifyListeners();
       return null;
-    }
-    else {
+    } else {
       return result;
     }
   }
@@ -203,44 +191,43 @@ class ServersProvider with ChangeNotifier {
     if (result == true) {
       _selectedServer = null;
       // _apiClient = null;
-      List<Server> newServers = _serversList.where((s) => s.id != server.id).toList();
+      List<Server> newServers =
+          _serversList.where((s) => s.id != server.id).toList();
       _serversList = newServers;
       notifyListeners();
       return true;
-    }
-    else {
+    } else {
       return false;
     }
   }
 
-  void checkServerUpdatesAvailable({
-    required Server server, 
-    ApiClientV2? apiClient
-  }) async {
+  void checkServerUpdatesAvailable(
+      {required Server server, ApiClientV2? apiClient}) async {
     final client = apiClient ?? _apiClient2;
     setUpdateAvailableLoadStatus(LoadStatus.loading, true);
     final result = await client!.checkServerUpdates();
     if (result.successful == true) {
       UpdateAvailableData data = UpdateAvailableData.fromJson(result.content);
-      final gitHubResult = await ExternalRequests.getReleaseData(releaseTag: data.newVersion ?? data.currentVersion);
+      final gitHubResult = await ExternalRequests.getReleaseData(
+          releaseTag: data.newVersion ?? data.currentVersion);
       if (gitHubResult.successful == true) {
         data.changelog = (gitHubResult.content as GitHubRelease).body;
       }
       setUpdateAvailableData(data);
       setUpdateAvailableLoadStatus(LoadStatus.loaded, true);
-    }
-    else {
+    } else {
       setUpdateAvailableLoadStatus(LoadStatus.error, true);
     }
   }
 
-  Future initializateServer(Server server, /*ApiClient apiClient, */ ApiClientV2 apiClient2) async {
+  Future initializateServer(
+      Server server, /*ApiClient apiClient, */ ApiClientV2 apiClient2) async {
     final serverStatus = await _apiClient2!.getServerStatus();
     if (serverStatus.successful == true) {
-      checkServerUpdatesAvailable( // Do not await
-        server: server,
-        apiClient: apiClient2
-      ); 
+      checkServerUpdatesAvailable(
+          // Do not await
+          server: server,
+          apiClient: apiClient2);
     }
   }
 
@@ -277,8 +264,7 @@ class ServersProvider with ChangeNotifier {
         _apiClient2 = client2;
         initializateServer(defaultServer, /*client,*/ client2);
       }
-    }
-    else {
+    } else {
       notifyListeners();
       return null;
     }
@@ -288,34 +274,31 @@ class ServersProvider with ChangeNotifier {
     if (_selectedServer != null) {
       setUpdatingServer(true);
       Server server = _selectedServer!;
-      Timer.periodic(
-        const Duration(seconds: 2), 
-        (timer) async {
-          if (_selectedServer != null && _selectedServer == server) {
-            final result = await _apiClient2!.checkServerUpdates();
-            if (result.successful == true) {
-              UpdateAvailableData data = UpdateAvailableData.fromJsonUpdate(result.content);
-              if (data.currentVersion == data.newVersion) {
-                final gitHubResult = await ExternalRequests.getReleaseData(releaseTag: data.newVersion ?? data.currentVersion);
-                if (gitHubResult.successful == true) {
-                  data.changelog = (gitHubResult.content as GitHubRelease).body;
-                }
-                setUpdateAvailableData(data);
-                timer.cancel();
-                setUpdatingServer(false);
+      Timer.periodic(const Duration(seconds: 2), (timer) async {
+        if (_selectedServer != null && _selectedServer == server) {
+          final result = await _apiClient2!.checkServerUpdates();
+          if (result.successful == true) {
+            UpdateAvailableData data =
+                UpdateAvailableData.fromJsonUpdate(result.content);
+            if (data.currentVersion == data.newVersion) {
+              final gitHubResult = await ExternalRequests.getReleaseData(
+                  releaseTag: data.newVersion ?? data.currentVersion);
+              if (gitHubResult.successful == true) {
+                data.changelog = (gitHubResult.content as GitHubRelease).body;
               }
-            }
-            else {
+              setUpdateAvailableData(data);
               timer.cancel();
               setUpdatingServer(false);
             }
-          }
-          else {
+          } else {
             timer.cancel();
             setUpdatingServer(false);
           }
+        } else {
+          timer.cancel();
+          setUpdatingServer(false);
         }
-      );
+      });
     }
   }
 }

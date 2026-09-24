@@ -67,11 +67,6 @@ class StatusProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void setFilteringStatus(FilteringStatus status) {
-    _filteringStatus = status;
-    notifyListeners();
-  }
-
   void startCountdown(DateTime deadline) {
     stopCountdown();
 
@@ -147,25 +142,6 @@ class StatusProvider with ChangeNotifier {
 
         if (result.successful == true) {
           _serverStatus!.filteringEnabled = newStatus;
-          notifyListeners();
-          return true;
-        } else {
-          return false;
-        }
-
-      case 'safeSearch':
-        _protectionsManagementProcess.add('safeSearch');
-        notifyListeners();
-
-        final result = await _serversProvider!.apiClient2!
-            .updateSafeSearchSettings(body: {'enabled': newStatus});
-
-        _protectionsManagementProcess = _protectionsManagementProcess
-            .where((e) => e != 'safeSearch')
-            .toList();
-
-        if (result.successful == true) {
-          _serverStatus!.safeSearchEnabled = newStatus;
           notifyListeners();
           return true;
         } else {
@@ -283,28 +259,6 @@ class StatusProvider with ChangeNotifier {
         return false;
       }
     } else {
-      return false;
-    }
-  }
-
-  Future<bool> updateSafeSearchConfig(Map<String, bool> status) async {
-    final result = await _serversProvider!.apiClient2!
-        .updateSafeSearchSettings(body: status);
-
-    if (result.successful == true) {
-      ServerStatus data = serverStatus!;
-      data.safeSearchEnabled = status['enabled'] ?? false;
-      data.safeSeachBing = status['bing'] ?? false;
-      data.safeSearchDuckduckgo = status['duckduckgo'] ?? false;
-      data.safeSearchGoogle = status['google'] ?? false;
-      data.safeSearchPixabay = status['pixabay'] ?? false;
-      data.safeSearchYandex = status['yandex'] ?? false;
-      data.safeSearchYoutube = status['youtube'] ?? false;
-
-      setServerStatusData(data: data);
-      return true;
-    } else {
-      notifyListeners();
       return false;
     }
   }

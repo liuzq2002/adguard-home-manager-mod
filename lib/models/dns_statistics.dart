@@ -15,7 +15,6 @@ class DnsStatistics {
   final List<int> blockedFiltering;
   final int numDnsQueries;
   final int numBlockedFiltering;
-  final int numReplacedSafesearch;
   final double avgProcessingTime;
 
   DnsStatistics({
@@ -28,7 +27,6 @@ class DnsStatistics {
     required this.blockedFiltering,
     required this.numDnsQueries,
     required this.numBlockedFiltering,
-    required this.numReplacedSafesearch,
     required this.avgProcessingTime,
   });
 
@@ -56,7 +54,6 @@ class DnsStatistics {
             List<int>.from(json["blocked_filtering"].map((x) => x)),
         numDnsQueries: json["num_dns_queries"],
         numBlockedFiltering: json["num_blocked_filtering"],
-        numReplacedSafesearch: json["num_replaced_safesearch"],
         avgProcessingTime: json["avg_processing_time"].toDouble(),
       );
 
@@ -78,7 +75,6 @@ class DnsStatistics {
         "blocked_filtering": List<dynamic>.from(blockedFiltering.map((x) => x)),
         "num_dns_queries": numDnsQueries,
         "num_blocked_filtering": numBlockedFiltering,
-        "num_replaced_safesearch": numReplacedSafesearch,
         "avg_processing_time": avgProcessingTime,
       };
 }

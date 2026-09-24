@@ -28,16 +28,7 @@ class DhcpProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void setDhcpLoadStatus(LoadStatus status, bool notify) {
-    _loadStatus = status;
-    if (notify == true) {
-      notifyListeners();
-    }
-  }
-
-  Future<bool> loadDhcpStatus({
-    bool? showLoading
-  }) async {
+  Future<bool> loadDhcpStatus({bool? showLoading}) async {
     if (showLoading == true) {
       _loadStatus = LoadStatus.loading;
       notifyListeners();
@@ -48,8 +39,7 @@ class DhcpProvider with ChangeNotifier {
       _loadStatus = LoadStatus.loaded;
       notifyListeners();
       return true;
-    }
-    else {
+    } else {
       if (showLoading == true) {
         _loadStatus = LoadStatus.error;
         notifyListeners();
@@ -60,42 +50,35 @@ class DhcpProvider with ChangeNotifier {
 
   Future<bool> deleteLease(Lease lease) async {
     final result = await _serversProvider!.apiClient2!.deleteStaticLease(
-      data: {
-        "mac": lease.mac,
-        "ip": lease.ip,
-        "hostname": lease.hostname
-      }
-    );
+        data: {"mac": lease.mac, "ip": lease.ip, "hostname": lease.hostname});
 
     if (result.successful == true) {
       DhcpModel data = dhcp!;
-      data.dhcpStatus!.staticLeases = data.dhcpStatus!.staticLeases.where((l) => l.mac != lease.mac).toList();
+      data.dhcpStatus!.staticLeases = data.dhcpStatus!.staticLeases
+          .where((l) => l.mac != lease.mac)
+          .toList();
       setDhcpData(data);
       return true;
-    }
-    else {
+    } else {
       notifyListeners();
       return false;
     }
   }
 
   Future<ApiResponse> createLease(Lease lease) async {
-    final result = await _serversProvider!.apiClient2!.createStaticLease(
-      data: {
-        "mac": lease.mac,
-        "ip": lease.ip,
-        "hostname": lease.hostname,
-      }
-    );
+    final result = await _serversProvider!.apiClient2!.createStaticLease(data: {
+      "mac": lease.mac,
+      "ip": lease.ip,
+      "hostname": lease.hostname,
+    });
 
     if (result.successful == true) {
       DhcpModel data = dhcp!;
       data.dhcpStatus!.staticLeases.add(lease);
       setDhcpData(data);
       return result;
-    }
-    else {
+    } else {
       return result;
     }
   }
-} 
+}

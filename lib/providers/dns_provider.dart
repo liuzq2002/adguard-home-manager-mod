@@ -28,16 +28,7 @@ class DnsProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void setDnsInfoLoadStatus(LoadStatus status, bool notify) {
-    _loadStatus = status;
-    if (notify == true) {
-      notifyListeners();
-    }
-  }
-
-  Future<bool> fetchDnsData({
-    bool? showLoading
-  }) async {
+  Future<bool> fetchDnsData({bool? showLoading}) async {
     if (showLoading == true) {
       _loadStatus = LoadStatus.loading;
     }
@@ -49,8 +40,7 @@ class DnsProvider with ChangeNotifier {
       _loadStatus = LoadStatus.loaded;
       notifyListeners();
       return true;
-    }
-    else {
+    } else {
       if (showLoading == false) {
         _loadStatus = LoadStatus.loaded;
         notifyListeners();
@@ -59,10 +49,10 @@ class DnsProvider with ChangeNotifier {
     }
   }
 
-  Future<ApiResponse> savePrivateReverseServersConfig(Map<String, dynamic> value) async {
-    final result = await _serversProvider!.apiClient2!.setDnsConfig(
-      data: value
-    );
+  Future<ApiResponse> savePrivateReverseServersConfig(
+      Map<String, dynamic> value) async {
+    final result =
+        await _serversProvider!.apiClient2!.setDnsConfig(data: value);
 
     if (result.successful == true) {
       DnsInfo data = dnsInfo!;
@@ -73,16 +63,14 @@ class DnsProvider with ChangeNotifier {
       data.resolveClients = value['resolve_clients'];
       setDnsInfoData(data);
       return result;
-    }
-    else {
+    } else {
       return result;
     }
   }
 
   Future<ApiResponse> saveUpstreamDnsConfig(Map<String, dynamic> value) async {
-    final result = await _serversProvider!.apiClient2!.setDnsConfig(
-      data: value
-    );
+    final result =
+        await _serversProvider!.apiClient2!.setDnsConfig(data: value);
 
     if (result.successful == true) {
       DnsInfo data = dnsInfo!;
@@ -90,48 +78,42 @@ class DnsProvider with ChangeNotifier {
       data.upstreamMode = value['upstream_mode'];
       setDnsInfoData(data);
       return result;
-    }
-    else {
+    } else {
       return result;
     }
   }
 
   Future<ApiResponse> saveBootstrapDnsConfig(Map<String, dynamic> value) async {
-    final result = await _serversProvider!.apiClient2!.setDnsConfig(
-      data: value
-    );
+    final result =
+        await _serversProvider!.apiClient2!.setDnsConfig(data: value);
 
     if (result.successful == true) {
       DnsInfo data = dnsInfo!;
       data.bootstrapDns = List<String>.from(value['bootstrap_dns']);
       setDnsInfoData(data);
       return result;
-    }
-    else {
+    } else {
       return result;
     }
   }
 
   Future<ApiResponse> saveFallbackDnsConfig(Map<String, dynamic> value) async {
-    final result = await _serversProvider!.apiClient2!.setDnsConfig(
-      data: value
-    );
+    final result =
+        await _serversProvider!.apiClient2!.setDnsConfig(data: value);
 
     if (result.successful == true) {
       DnsInfo data = dnsInfo!;
       data.fallbackDns = List<String>.from(value['fallback_dns']);
       setDnsInfoData(data);
       return result;
-    }
-    else {
+    } else {
       return result;
     }
   }
 
   Future<ApiResponse> saveCacheCacheConfig(Map<String, dynamic> value) async {
-    final result = await _serversProvider!.apiClient2!.setDnsConfig(
-      data: value
-    );
+    final result =
+        await _serversProvider!.apiClient2!.setDnsConfig(data: value);
 
     if (result.successful == true) {
       DnsInfo data = dnsInfo!;
@@ -141,17 +123,15 @@ class DnsProvider with ChangeNotifier {
       data.cacheOptimistic = value['cache_optimistic'];
       setDnsInfoData(data);
       return result;
-    }
-    else {
+    } else {
       return result;
     }
   }
-  
+
   Future<ApiResponse> saveDnsServerConfig(Map<String, dynamic> value) async {
-    final result = await _serversProvider!.apiClient2!.setDnsConfig(
-      data: value
-    );
-    
+    final result =
+        await _serversProvider!.apiClient2!.setDnsConfig(data: value);
+
     void updateValue(dynamic parameter, dynamic value) {
       if (value != null) {
         parameter = value;
@@ -168,13 +148,14 @@ class DnsProvider with ChangeNotifier {
       updateValue(data.blockingIpv4, value['blocking_ipv4']);
       updateValue(data.blockingIpv6, value['blocking_ipv6']);
       updateValue(data.blockedResponseTtl, value['blocked_response_ttl']);
-      updateValue(data.ratelimitSubnetLenIpv4, value['ratelimit_subnet_len_ipv4']);
-      updateValue(data.ratelimitSubnetLenIpv6, value['ratelimit_subnet_len_ipv6']);
+      updateValue(
+          data.ratelimitSubnetLenIpv4, value['ratelimit_subnet_len_ipv4']);
+      updateValue(
+          data.ratelimitSubnetLenIpv6, value['ratelimit_subnet_len_ipv6']);
       updateValue(data.ratelimitWhitelist, value['ratelimit_whitelist']);
       setDnsInfoData(data);
       return result;
-    }
-    else {
+    } else {
       return result;
     }
   }

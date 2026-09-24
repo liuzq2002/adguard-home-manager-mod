@@ -1,7 +1,5 @@
 import 'dart:convert';
 
-
-import 'package:adguard_home_manager/models/blocked_services.dart';
 import 'package:adguard_home_manager/models/rewrite_status.dart';
 import 'package:adguard_home_manager/models/querylog_config.dart';
 import 'package:adguard_home_manager/models/statistics_config.dart';
@@ -34,25 +32,21 @@ class ApiResponse {
 class ApiClientV2 {
   final Server server;
 
-  ApiClientV2({
-    required this.server
-  });
+  ApiClientV2({required this.server});
 
   Future<ApiResponse> getServerVersion() async {
-    final result = await HttpRequestClient.get(urlPath: '/status', server: server);
+    final result =
+        await HttpRequestClient.get(urlPath: '/status', server: server);
     if (result.successful == true) {
       try {
         return ApiResponse(
-          successful: true,
-          content: jsonDecode(result.body!)['version']
-        );
+            successful: true, content: jsonDecode(result.body!)['version']);
       } on FormatException {
         return const ApiResponse(successful: false);
       } catch (e) {
         return const ApiResponse(successful: false);
       }
-    }
-    else {
+    } else {
       return const ApiResponse(successful: false);
     }
   }
@@ -61,76 +55,63 @@ class ApiClientV2 {
     final results1 = await Future.wait([
       HttpRequestClient.get(urlPath: "/stats", server: server),
       HttpRequestClient.get(urlPath: "/status", server: server),
-    ]);
-    final results2 = await Future.wait([
       HttpRequestClient.get(urlPath: "/filtering/status", server: server),
-      HttpRequestClient.get(urlPath: "/safesearch/status", server: server),
     ]);
-    final results3 = await Future.wait([
+    // 这些接口在精简核心中可能不存在，缺失时按默认值处理，不能影响整体状态加载
+    final results2 = await Future.wait([
       HttpRequestClient.get(urlPath: "/safebrowsing/status", server: server),
       HttpRequestClient.get(urlPath: "/parental/status", server: server),
-    ]);
-    final results4 = await Future.wait([
       HttpRequestClient.get(urlPath: "/clients", server: server),
     ]);
-    // AdGuard Home limits the amount of concurrent connections
-    final results = [
-      ...results1,
-      ...results2,
-      ...results3,
-      ...results4
-    ];
-    if (
-      results.map((e) => e.successful).every((e) => e == true) &&
-      results.map((e) => e.body).every((e) => e != null)
-    ) {
+    if (results1.map((e) => e.successful).every((e) => e == true) &&
+        results1.map((e) => e.body).every((e) => e != null)) {
       try {
+        final Map<String, dynamic>? clientsData =
+            results2[2].successful && results2[2].body != null
+                ? jsonDecode(results2[2].body!)
+                : null;
+        final Map<String, dynamic>? safebrowsingData =
+            results2[0].successful && results2[0].body != null
+                ? jsonDecode(results2[0].body!)
+                : null;
+        final Map<String, dynamic>? parentalData =
+            results2[1].successful && results2[1].body != null
+                ? jsonDecode(results2[1].body!)
+                : null;
         final Map<String, dynamic> mappedData = {
-          'stats': jsonDecode(results[0].body!),
-          'clients': jsonDecode(results[6].body!)['clients'],
-          'status': jsonDecode(results[1].body!),
-          'filtering': jsonDecode(results[2].body!),
-          'safeSearch': jsonDecode(results[3].body!),
-          'safeBrowsingEnabled': jsonDecode(results[4].body!),
-          'parentalControlEnabled': jsonDecode(results[5].body!),
+          'stats': jsonDecode(results1[0].body!),
+          'status': jsonDecode(results1[1].body!),
+          'filtering': jsonDecode(results1[2].body!),
+          'clients': clientsData != null ? clientsData['clients'] : null,
+          'safeBrowsingEnabled': safebrowsingData,
+          'parentalControlEnabled': parentalData,
         };
         return ApiResponse(
-          successful: true,
-          content: ServerStatus.fromJson(mappedData)
-        );
+            successful: true, content: ServerStatus.fromJson(mappedData));
       } on FormatException {
         return const ApiResponse(successful: false);
       } catch (e) {
         return const ApiResponse(successful: false);
       }
-    }
-    else {
+    } else {
       return const ApiResponse(successful: false);
     }
   }
 
-  Future<ApiResponse> updateFiltering({
-    required bool enable
-  }) async {
+  Future<ApiResponse> updateFiltering({required bool enable}) async {
     final result = await HttpRequestClient.post(
-      urlPath: "/filtering/config", 
-      server: server,
-      body: {
-        'enabled': enable
-      }
-    );
+        urlPath: "/filtering/config",
+        server: server,
+        body: {'enabled': enable});
     return ApiResponse(
       successful: result.successful,
     );
   }
 
-  Future<ApiResponse> updateSafeBrowsing({
-    required bool enable
-  }) async {
+  Future<ApiResponse> updateSafeBrowsing({required bool enable}) async {
     final result = await HttpRequestClient.post(
-      urlPath: enable == true
-        ? "/safebrowsing/enable"
-        : "/safebrowsing/disable", 
+      urlPath:
+          enable == true ? "/safebrowsing/enable" : "/safebrowsing/disable",
       server: server,
     );
     return ApiResponse(
@@ -138,13 +119,9 @@ class ApiClientV2 {
     );
   }
 
-  Future<ApiResponse> updateParentalControl({
-    required bool enable
-  }) async {
+  Future<ApiResponse> updateParentalControl({required bool enable}) async {
     final result = await HttpRequestClient.post(
-      urlPath: enable == true
-        ? "/parental/enable"
-        : "/parental/disable", 
+      urlPath: enable == true ? "/parental/enable" : "/parental/disable",
       server: server,
     );
     return ApiResponse(
@@ -157,13 +134,9 @@ class ApiClientV2 {
     int? time,
   }) async {
     final result = await HttpRequestClient.post(
-      urlPath: "/protection", 
-      server: server,
-      body: {
-        'enabled': enable,
-        'duration': time
-      }
-    );
+        urlPath: "/protection",
+        server: server,
+        body: {'enabled': enable, 'duration': time});
     return ApiResponse(
       successful: result.successful,
     );
@@ -174,124 +147,100 @@ class ApiClientV2 {
       HttpRequestClient.get(urlPath: "/clients", server: server),
       HttpRequestClient.get(urlPath: "/access/list", server: server),
     ]);
-    if (
-      results.map((e) => e.successful).every((e) => e == true) &&
-      results.map((e) => e.body).every((e) => e != null)
-    ) {
+    if (results.map((e) => e.successful).every((e) => e == true) &&
+        results.map((e) => e.body).every((e) => e != null)) {
       try {
         final clients = Clients.fromJson(jsonDecode(results[0].body!));
-        clients.clientsAllowedBlocked = ClientsAllowedBlocked.fromJson(jsonDecode(results[1].body!));
-        return ApiResponse(
-          successful: true,
-          content: clients
-        );
+        clients.clientsAllowedBlocked =
+            ClientsAllowedBlocked.fromJson(jsonDecode(results[1].body!));
+        return ApiResponse(successful: true, content: clients);
       } catch (e) {
         return const ApiResponse(successful: false);
       }
-    }
-    else {
+    } else {
       return const ApiResponse(successful: false);
     }
   }
 
-  Future<ApiResponse> requestAllowedBlockedClientsHosts({
-    required Map<String, List<String>?> body
-  }) async {
+  Future<ApiResponse> requestAllowedBlockedClientsHosts(
+      {required Map<String, List<String>?> body}) async {
     final result = await HttpRequestClient.post(
-      urlPath: "/access/set",
-      server: server,
-      body: body
-    );
+        urlPath: "/access/set", server: server, body: body);
     if (result.statusCode == 400) {
       return const ApiResponse(
-        successful: false,
-        content: "client_another_list"
-      );
+          successful: false, content: "client_another_list");
     }
     return ApiResponse(successful: result.successful);
   }
 
-  Future<ApiResponse> getLogs({
-    int? count, 
-    int? offset,
-    DateTime? olderThan,
-    String? responseStatus,
-    String? search
-  }) async {
+  Future<ApiResponse> getLogs(
+      {int? count,
+      int? offset,
+      DateTime? olderThan,
+      String? responseStatus,
+      String? search}) async {
     final result = await HttpRequestClient.get(
-      urlPath: '/querylog?${count != null ? 'limit=$count' : ''}${offset != null ? '&offset=$offset' : ''}${olderThan != null ? '&older_than=${olderThan.toIso8601String()}' : ''}${responseStatus != null ? '&response_status=$responseStatus' : ''}${search != null ? '&search=$search' : ''}', 
-      server: server
-    );
+        urlPath:
+            '/querylog?${count != null ? 'limit=$count' : ''}${offset != null ? '&offset=$offset' : ''}${olderThan != null ? '&older_than=${olderThan.toIso8601String()}' : ''}${responseStatus != null ? '&response_status=$responseStatus' : ''}${search != null ? '&search=$search' : ''}',
+        server: server);
     if (result.successful == true) {
       try {
         return ApiResponse(
-          successful: true,
-          content: LogsData.fromJson(jsonDecode(result.body!))
-        );
+            successful: true,
+            content: LogsData.fromJson(jsonDecode(result.body!)));
       } catch (e) {
         return const ApiResponse(successful: false);
       }
-    }
-    else {
+    } else {
       return const ApiResponse(successful: false);
     }
   }
 
   Future<ApiResponse> getFilteringRules() async {
-    final result = await HttpRequestClient.get(urlPath: '/filtering/status', server: server);
+    final result = await HttpRequestClient.get(
+        urlPath: '/filtering/status', server: server);
     if (result.successful == true) {
       try {
         return ApiResponse(
-          successful: true,
-          content: FilteringStatus.fromJson(jsonDecode(result.body!))
-        );
+            successful: true,
+            content: FilteringStatus.fromJson(jsonDecode(result.body!)));
       } catch (e) {
         return const ApiResponse(successful: false);
       }
-    }
-    else {
+    } else {
       return const ApiResponse(successful: false);
     }
   }
 
   Future<ApiResponse> postFilteringRules({
-    required Map<String, List<String>> data, 
+    required Map<String, List<String>> data,
   }) async {
     final result = await HttpRequestClient.post(
-      urlPath: '/filtering/set_rules', 
-      server: server,
-      body: data
-    );
+        urlPath: '/filtering/set_rules', server: server, body: data);
     return ApiResponse(successful: result.successful);
   }
 
   Future<ApiResponse> postAddClient({
-    required Map<String, dynamic> data, 
+    required Map<String, dynamic> data,
   }) async {
     final result = await HttpRequestClient.post(
-      urlPath: '/clients/add', 
-      server: server,
-      body: data
-    );
+        urlPath: '/clients/add', server: server, body: data);
     return ApiResponse(successful: result.successful);
   }
 
   Future<ApiResponse> postUpdateClient({
-    required Map<String, dynamic> data, 
+    required Map<String, dynamic> data,
   }) async {
     final result = await HttpRequestClient.post(
-      urlPath: '/clients/update', 
-      server: server,
-      body: data
-    );
+        urlPath: '/clients/update', server: server, body: data);
     return ApiResponse(successful: result.successful);
   }
 
   Future<ApiResponse> postDeleteClient({
-    required String name, 
+    required String name,
   }) async {
     final result = await HttpRequestClient.post(
-      urlPath: '/clients/delete', 
+      urlPath: '/clients/delete',
       server: server,
       body: {'name': name},
     );
@@ -299,33 +248,30 @@ class ApiClientV2 {
   }
 
   Future<ApiResponse> getFiltering() async {
-    final results1 = await  HttpRequestClient.get(urlPath: '/filtering/status', server: server);
-    final results2 = await HttpRequestClient.get(urlPath: '/blocked_services/list', server: server);
+    final results1 = await HttpRequestClient.get(
+        urlPath: '/filtering/status', server: server);
     if (results1.successful == true && results1.body != null) {
       try {
         return ApiResponse(
-          successful: true,
-          content: Filtering.fromJson({
-            ...jsonDecode(results1.body!),
-            "blocked_services": results2.body != null 
-              ? jsonDecode(results2.body!)
-              : []
-          })
-        );
+            successful: true,
+            content: Filtering.fromJson({
+              ...jsonDecode(results1.body!),
+              // 精简核心已移除 blocked_services 接口，这里保持空列表
+              "blocked_services": []
+            }));
       } catch (e) {
         return const ApiResponse(successful: false);
       }
-    }
-    else {
+    } else {
       return const ApiResponse(successful: false);
     }
   }
 
   Future<ApiResponse> setCustomRules({
-    required List<String> rules, 
+    required List<String> rules,
   }) async {
     final result = await HttpRequestClient.post(
-      urlPath: '/filtering/set_rules', 
+      urlPath: '/filtering/set_rules',
       server: server,
       body: {'rules': rules},
     );
@@ -333,25 +279,24 @@ class ApiClientV2 {
   }
 
   Future<ApiResponse> addFilteringList({
-    required Map<String, dynamic> data, 
+    required Map<String, dynamic> data,
   }) async {
     final result = await HttpRequestClient.post(
-      urlPath: '/filtering/add_url', 
+      urlPath: '/filtering/add_url',
       server: server,
       body: data,
     );
     return ApiResponse(
-      successful: result.successful,
-      content: result.body,
-      statusCode: result.statusCode
-    );
+        successful: result.successful,
+        content: result.body,
+        statusCode: result.statusCode);
   }
 
   Future<ApiResponse> updateFilterList({
-    required Map<String, dynamic> data, 
+    required Map<String, dynamic> data,
   }) async {
     final result = await HttpRequestClient.post(
-      urlPath: '/filtering/set_url', 
+      urlPath: '/filtering/set_url',
       server: server,
       body: data,
     );
@@ -359,10 +304,10 @@ class ApiClientV2 {
   }
 
   Future<ApiResponse> deleteFilterList({
-    required Map<String, dynamic> data, 
+    required Map<String, dynamic> data,
   }) async {
     final result = await HttpRequestClient.post(
-      urlPath: '/filtering/remove_url', 
+      urlPath: '/filtering/remove_url',
       server: server,
       body: data,
     );
@@ -370,18 +315,17 @@ class ApiClientV2 {
   }
 
   Future<ApiResponse> getServerInfo() async {
-    final result = await HttpRequestClient.get(urlPath: "/status", server: server);
+    final result =
+        await HttpRequestClient.get(urlPath: "/status", server: server);
     if (result.successful) {
       try {
         return ApiResponse(
-          successful: true,
-          content: ServerInfoData.fromJson(jsonDecode(result.body!))
-        );
+            successful: true,
+            content: ServerInfoData.fromJson(jsonDecode(result.body!)));
       } catch (e) {
         return const ApiResponse(successful: false);
       }
-    }
-    else {
+    } else {
       return const ApiResponse(successful: false);
     }
   }
@@ -389,67 +333,49 @@ class ApiClientV2 {
   Future<ApiResponse> updateLists() async {
     final results = await Future.wait([
       HttpRequestClient.post(
-        urlPath: '/filtering/refresh', 
+        urlPath: '/filtering/refresh',
         server: server,
         body: {'whitelist': true},
       ),
       HttpRequestClient.post(
-        urlPath: '/filtering/refresh', 
+        urlPath: '/filtering/refresh',
         server: server,
         body: {'whitelist': false},
       ),
     ]);
-    if (
-      results.map((e) => e.successful).every((e) => e == true) &&
-      results.map((e) => e.body).every((e) => e != null)
-    ) {
+    if (results.map((e) => e.successful).every((e) => e == true) &&
+        results.map((e) => e.body).every((e) => e != null)) {
       try {
         final clients = Clients.fromJson(jsonDecode(results[0].body!));
-        clients.clientsAllowedBlocked = ClientsAllowedBlocked.fromJson(jsonDecode(results[1].body!));
-        return ApiResponse(
-          successful: true,
-          content: {'updated': jsonDecode(results[0].body!)['updated']+jsonDecode(results[1].body!)['updated']} 
-        );
+        clients.clientsAllowedBlocked =
+            ClientsAllowedBlocked.fromJson(jsonDecode(results[1].body!));
+        return ApiResponse(successful: true, content: {
+          'updated': jsonDecode(results[0].body!)['updated'] +
+              jsonDecode(results[1].body!)['updated']
+        });
       } catch (e) {
         return const ApiResponse(successful: false);
       }
-    }
-    else {
+    } else {
       return const ApiResponse(successful: false);
     }
   }
 
-  Future<ApiResponse> checkHostFiltered({
-    required String host
-  }) async {
-    final result = await HttpRequestClient.get(urlPath: '/filtering/check_host?name=$host', server: server);
+  Future<ApiResponse> checkHostFiltered({required String host}) async {
+    final result = await HttpRequestClient.get(
+        urlPath: '/filtering/check_host?name=$host', server: server);
     if (result.successful) {
-      return ApiResponse(
-        successful: true,
-        content: jsonDecode(result.body!)
-      );
-    }
-    else {
+      return ApiResponse(successful: true, content: jsonDecode(result.body!));
+    } else {
       return const ApiResponse(successful: false);
     }
   }
 
   Future<ApiResponse> requestChangeUpdateFrequency({
-    required Map<String, dynamic> data, 
+    required Map<String, dynamic> data,
   }) async {
     final result = await HttpRequestClient.post(
-      urlPath: '/filtering/config', 
-      server: server,
-      body: data,
-    );
-    return ApiResponse(successful: result.successful);
-  }
-
-  Future<ApiResponse> setBlockedServices({
-    required List<String> data,
-  }) async {
-    final result = await HttpRequestClient.post(
-      urlPath: '/blocked_services/set', 
+      urlPath: '/filtering/config',
       server: server,
       body: data,
     );
@@ -461,26 +387,24 @@ class ApiClientV2 {
       HttpRequestClient.get(urlPath: '/dhcp/interfaces', server: server),
       HttpRequestClient.get(urlPath: '/dhcp/status', server: server),
     ]);
-    if (
-      results.map((e) => e.successful).every((e) => e == true) &&
-      results.map((e) => e.body).every((e) => e != null)
-    ) {
+    if (results.map((e) => e.successful).every((e) => e == true) &&
+        results.map((e) => e.body).every((e) => e != null)) {
       try {
-        List<NetworkInterface> interfaces = List<NetworkInterface>.from(jsonDecode(results[0].body!).entries.map((entry) => NetworkInterface.fromJson(entry.value)));
+        List<NetworkInterface> interfaces = List<NetworkInterface>.from(
+            jsonDecode(results[0].body!)
+                .entries
+                .map((entry) => NetworkInterface.fromJson(entry.value)));
         return ApiResponse(
-          successful: true,
-          content: DhcpModel(
-            networkInterfaces: interfaces, 
-            dhcpStatus: jsonDecode(results[1].body!)['message'] != null
-              ? null
-              : DhcpStatus.fromJson(jsonDecode(results[1].body!))
-          )
-        );
+            successful: true,
+            content: DhcpModel(
+                networkInterfaces: interfaces,
+                dhcpStatus: jsonDecode(results[1].body!)['message'] != null
+                    ? null
+                    : DhcpStatus.fromJson(jsonDecode(results[1].body!))));
       } catch (e) {
         return const ApiResponse(successful: false);
       }
-    }
-    else {
+    } else {
       return const ApiResponse(successful: false);
     }
   }
@@ -489,7 +413,7 @@ class ApiClientV2 {
     required Map<String, dynamic> data,
   }) async {
     final result = await HttpRequestClient.post(
-      urlPath: '/dhcp/set_config', 
+      urlPath: '/dhcp/set_config',
       server: server,
       body: data,
     );
@@ -498,52 +422,48 @@ class ApiClientV2 {
 
   Future<ApiResponse> resetDhcpConfig() async {
     final result = await HttpRequestClient.post(
-      urlPath: '/dhcp/reset', 
+      urlPath: '/dhcp/reset',
       server: server,
       body: {},
     );
     return ApiResponse(successful: result.successful);
   }
 
-  Future<ApiResponse> deleteStaticLease({
-    required Map<String, dynamic> data
-  }) async {
+  Future<ApiResponse> deleteStaticLease(
+      {required Map<String, dynamic> data}) async {
     final result = await HttpRequestClient.post(
-      urlPath: '/dhcp/remove_static_lease', 
+      urlPath: '/dhcp/remove_static_lease',
       server: server,
       body: data,
     );
     return ApiResponse(successful: result.successful);
   }
 
-  Future<ApiResponse> createStaticLease({
-    required Map<String, dynamic> data
-  }) async {
+  Future<ApiResponse> createStaticLease(
+      {required Map<String, dynamic> data}) async {
     final result = await HttpRequestClient.post(
-      urlPath: '/dhcp/add_static_lease', 
+      urlPath: '/dhcp/add_static_lease',
       server: server,
       body: data,
     );
-    if (result.statusCode == 400 && result.body != null && result.body!.contains('static lease already exists')) {
+    if (result.statusCode == 400 &&
+        result.body != null &&
+        result.body!.contains('static lease already exists')) {
       return const ApiResponse(
-        successful: false,
-        content: "already_exists",
-        statusCode: 400
-      );
+          successful: false, content: "already_exists", statusCode: 400);
     }
-    if (result.statusCode == 400 && result.body != null && result.body!.contains('server is unconfigured')) {
+    if (result.statusCode == 400 &&
+        result.body != null &&
+        result.body!.contains('server is unconfigured')) {
       return const ApiResponse(
-        successful: false,
-        content: "server_not_configured",
-        statusCode: 400
-      );
+          successful: false, content: "server_not_configured", statusCode: 400);
     }
     return ApiResponse(successful: result.successful);
   }
 
   Future<ApiResponse> restoreAllLeases() async {
     final result = await HttpRequestClient.post(
-      urlPath: '/dhcp/reset_leases', 
+      urlPath: '/dhcp/reset_leases',
       server: server,
       body: {},
     );
@@ -551,19 +471,16 @@ class ApiClientV2 {
   }
 
   Future<ApiResponse> getDnsRewriteSettings() async {
-    final result = await HttpRequestClient.get(urlPath: '/rewrite/settings', server: server);
+    final result = await HttpRequestClient.get(
+        urlPath: '/rewrite/settings', server: server);
     if (result.successful) {
       try {
         final data = RewriteStatus.fromJson(jsonDecode(result.body!));
-        return ApiResponse(
-          successful: true,
-          content: data
-        );
+        return ApiResponse(successful: true, content: data);
       } catch (e) {
         return const ApiResponse(successful: false);
       }
-    }
-    else {
+    } else {
       return const ApiResponse(successful: false);
     }
   }
@@ -572,7 +489,7 @@ class ApiClientV2 {
     required Map<String, dynamic> data,
   }) async {
     final result = await HttpRequestClient.put(
-      urlPath: '/rewrite/settings/update', 
+      urlPath: '/rewrite/settings/update',
       server: server,
       body: data,
     );
@@ -580,21 +497,18 @@ class ApiClientV2 {
   }
 
   Future<ApiResponse> getDnsRewriteRules() async {
-    final result = await HttpRequestClient.get(urlPath: '/rewrite/list', server: server);
+    final result =
+        await HttpRequestClient.get(urlPath: '/rewrite/list', server: server);
     if (result.successful) {
       try {
         final List<RewriteRules> data = List<RewriteRules>.from(
-          jsonDecode(result.body!).map((item) => RewriteRules.fromJson(item))
-        );
-        return ApiResponse(
-          successful: true,
-          content: data
-        );
+            jsonDecode(result.body!)
+                .map((item) => RewriteRules.fromJson(item)));
+        return ApiResponse(successful: true, content: data);
       } catch (e) {
         return const ApiResponse(successful: false);
       }
-    }
-    else {
+    } else {
       return const ApiResponse(successful: false);
     }
   }
@@ -603,7 +517,7 @@ class ApiClientV2 {
     required Map<String, dynamic> data,
   }) async {
     final result = await HttpRequestClient.post(
-      urlPath: '/rewrite/delete', 
+      urlPath: '/rewrite/delete',
       server: server,
       body: data,
     );
@@ -614,7 +528,7 @@ class ApiClientV2 {
     required Map<String, dynamic> data,
   }) async {
     final result = await HttpRequestClient.post(
-      urlPath: '/rewrite/add', 
+      urlPath: '/rewrite/add',
       server: server,
       body: data,
     );
@@ -622,18 +536,17 @@ class ApiClientV2 {
   }
 
   Future<ApiResponse> getQueryLogInfo() async {
-    final result = await HttpRequestClient.get(urlPath: '/querylog/config', server: server);
+    final result = await HttpRequestClient.get(
+        urlPath: '/querylog/config', server: server);
     if (result.successful) {
       try {
         return ApiResponse(
-          successful: true,
-          content: QueryLogConfig.fromJson(jsonDecode(result.body!))
-        );
+            successful: true,
+            content: QueryLogConfig.fromJson(jsonDecode(result.body!)));
       } catch (e) {
         return const ApiResponse(successful: false);
       }
-    }
-    else {
+    } else {
       return const ApiResponse(successful: false);
     }
   }
@@ -642,7 +555,7 @@ class ApiClientV2 {
     required Map<String, dynamic> data,
   }) async {
     final result = await HttpRequestClient.put(
-      urlPath: '/querylog/config/update', 
+      urlPath: '/querylog/config/update',
       server: server,
       body: data,
     );
@@ -651,7 +564,7 @@ class ApiClientV2 {
 
   Future<ApiResponse> clearLogs() async {
     final result = await HttpRequestClient.post(
-      urlPath: '/querylog_clear', 
+      urlPath: '/querylog_clear',
       server: server,
       body: {},
     );
@@ -659,18 +572,17 @@ class ApiClientV2 {
   }
 
   Future<ApiResponse> getDnsInfo() async {
-    final result = await HttpRequestClient.get(urlPath: '/dns_info', server: server);
+    final result =
+        await HttpRequestClient.get(urlPath: '/dns_info', server: server);
     if (result.successful) {
       try {
         return ApiResponse(
-          successful: true,
-          content: DnsInfo.fromJson(jsonDecode(result.body!))
-        );
+            successful: true,
+            content: DnsInfo.fromJson(jsonDecode(result.body!)));
       } catch (e) {
         return const ApiResponse(successful: false);
       }
-    }
-    else {
+    } else {
       return const ApiResponse(successful: false);
     }
   }
@@ -679,52 +591,31 @@ class ApiClientV2 {
     required Map<String, dynamic> data,
   }) async {
     final result = await HttpRequestClient.post(
-      urlPath: '/dns_config', 
+      urlPath: '/dns_config',
       server: server,
       body: data,
     );
     if (result.statusCode == 400) {
       return ApiResponse(
-        successful: result.successful,
-        content: "data_not_valid",
-        statusCode: result.statusCode
-      );
+          successful: result.successful,
+          content: "data_not_valid",
+          statusCode: result.statusCode);
     }
     return ApiResponse(successful: result.successful);
   }
 
   Future<ApiResponse> getEncryptionSettings() async {
-    final result = await HttpRequestClient.get(urlPath: '/tls/status', server: server);
+    final result =
+        await HttpRequestClient.get(urlPath: '/tls/status', server: server);
     if (result.successful) {
       try {
         return ApiResponse(
-          successful: true,
-          content: EncryptionData.fromJson(jsonDecode(result.body!))
-        );
+            successful: true,
+            content: EncryptionData.fromJson(jsonDecode(result.body!)));
       } catch (e) {
         return const ApiResponse(successful: false);
       }
-    }
-    else {
-      return const ApiResponse(successful: false);
-    }
-  }
-
-  Future<ApiResponse> getBlockedServices() async {
-    final result = await HttpRequestClient.get(urlPath: '/blocked_services/all', server: server);
-    if (result.successful) {
-      try {
-        return ApiResponse(
-          successful: true,
-          content: List<BlockedService>.from(
-            BlockedServicesFromApi.fromJson(jsonDecode(result.body!)).blockedServices
-          )
-        );
-      } catch (e) {
-        return const ApiResponse(successful: false);
-      }
-    }
-    else {
+    } else {
       return const ApiResponse(successful: false);
     }
   }
@@ -733,26 +624,26 @@ class ApiClientV2 {
     required Map<String, dynamic> data,
   }) async {
     final result = await HttpRequestClient.post(
-      urlPath: '/tls/validate', 
+      urlPath: '/tls/validate',
       server: server,
       body: data,
     );
     try {
       return ApiResponse(
-        successful: result.successful,
-        content: result.body != null ? EncryptionValidationResult(
-          isObject: true,
-          encryptionValidation: EncryptionValidation.fromJson(jsonDecode(result.body!))
-        ) : null
-      );
+          successful: result.successful,
+          content: result.body != null
+              ? EncryptionValidationResult(
+                  isObject: true,
+                  encryptionValidation:
+                      EncryptionValidation.fromJson(jsonDecode(result.body!)))
+              : null);
     } on FormatException {
       return ApiResponse(
-        successful: result.successful,
-        content: result.body != null ? EncryptionValidationResult(
-          isObject: false,
-          message: result.body
-        ) : null
-      );
+          successful: result.successful,
+          content: result.body != null
+              ? EncryptionValidationResult(
+                  isObject: false, message: result.body)
+              : null);
     } catch (e) {
       return const ApiResponse(successful: false);
     }
@@ -762,19 +653,16 @@ class ApiClientV2 {
     required Map<String, dynamic> data,
   }) async {
     final result = await HttpRequestClient.post(
-      urlPath: '/tls/configure', 
+      urlPath: '/tls/configure',
       server: server,
       body: data,
     );
-    return ApiResponse(
-      successful: result.successful,
-      content: result.body
-    );
+    return ApiResponse(successful: result.successful, content: result.body);
   }
 
   Future<ApiResponse> resetDnsCache() async {
     final result = await HttpRequestClient.post(
-      urlPath: '/cache_clear', 
+      urlPath: '/cache_clear',
       server: server,
     );
     return ApiResponse(successful: result.successful);
@@ -782,100 +670,73 @@ class ApiClientV2 {
 
   Future<ApiResponse> checkServerUpdates() async {
     final results = await Future.wait([
-      HttpRequestClient.post(urlPath: '/version.json', server: server, body: { "recheck_now": true }),
+      HttpRequestClient.post(
+          urlPath: '/version.json',
+          server: server,
+          body: {"recheck_now": true}),
       HttpRequestClient.get(urlPath: '/status', server: server),
     ]);
-    if (
-      results.map((e) => e.successful).every((e) => e == true) &&
-      results.map((e) => e.body).every((e) => e != null)
-    ) {
+    if (results.map((e) => e.successful).every((e) => e == true) &&
+        results.map((e) => e.body).every((e) => e != null)) {
       try {
         final Map<String, dynamic> obj = {
           ...jsonDecode(results[0].body!),
-          'current_version': ServerInfoData.fromJson(jsonDecode(results[1].body!)).version
+          'current_version':
+              ServerInfoData.fromJson(jsonDecode(results[1].body!)).version
         };
-        return ApiResponse(
-          successful: true,
-          content: obj
-        );
+        return ApiResponse(successful: true, content: obj);
       } catch (e) {
         return const ApiResponse(successful: false);
       }
-    }
-    else {
+    } else {
       return const ApiResponse(successful: false);
     }
   }
 
   Future<ApiResponse> requestUpdateServer() async {
     final result = await HttpRequestClient.post(
-      urlPath: '/update', 
+      urlPath: '/update',
       server: server,
     );
     return ApiResponse(successful: result.successful);
   }
 
-  Future<ApiResponse> updateSafeSearchSettings({
-    required Map<String, bool> body
-  }) async {
+  Future<ApiResponse> updateRewriteRule(
+      {required Map<String, dynamic> body}) async {
     final result = await HttpRequestClient.put(
-      urlPath: '/safesearch/settings', 
-      server: server,
-      body: body
-    );
+        urlPath: '/rewrite/update', server: server, body: body);
     return ApiResponse(successful: result.successful);
   }
 
-  Future<ApiResponse> updateRewriteRule({
-    required Map<String, dynamic> body
-  }) async {
-    final result = await HttpRequestClient.put(
-      urlPath: '/rewrite/update', 
-      server: server,
-      body: body
-    );
-    return ApiResponse(successful: result.successful);
-  }
-
-  Future<ApiResponse> testUpstreamDns({
-    required Map<String, dynamic> body
-  }) async {
+  Future<ApiResponse> testUpstreamDns(
+      {required Map<String, dynamic> body}) async {
     final result = await HttpRequestClient.post(
-      urlPath: '/test_upstream_dns', 
-      server: server,
-      body: body
-    );
+        urlPath: '/test_upstream_dns', server: server, body: body);
     return ApiResponse(
-      successful: result.successful,
-      content: result.body != null ? jsonDecode(result.body!) : null
-    );
+        successful: result.successful,
+        content: result.body != null ? jsonDecode(result.body!) : null);
   }
 
   Future<ApiResponse> getStatisticsConfig() async {
-    final result = await HttpRequestClient.get(urlPath: '/stats/config', server: server);
+    final result =
+        await HttpRequestClient.get(urlPath: '/stats/config', server: server);
     if (result.successful) {
       try {
         return ApiResponse(
-          successful: true,
-          content: StatisticsConfig.fromJson(jsonDecode(result.body!))
-        );
+            successful: true,
+            content: StatisticsConfig.fromJson(jsonDecode(result.body!)));
       } catch (e) {
         return const ApiResponse(successful: false);
       }
-    }
-    else {
+    } else {
       return const ApiResponse(successful: false);
     }
   }
 
-  Future<ApiResponse> updateStatisticsSettings({
-    required Map<String, dynamic> body
-  }) async {
+  Future<ApiResponse> updateStatisticsSettings(
+      {required Map<String, dynamic> body}) async {
     final result = await HttpRequestClient.put(
-      urlPath: '/stats/config/update', 
-      server: server,
-      body: body
-    );
+        urlPath: '/stats/config/update', server: server, body: body);
     return ApiResponse(successful: result.successful);
   }
 }
