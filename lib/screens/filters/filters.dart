@@ -20,7 +20,6 @@ import 'package:adguard_home_manager/providers/filtering_provider.dart';
 import 'package:adguard_home_manager/providers/app_config_provider.dart';
 import 'package:adguard_home_manager/models/filtering.dart';
 import 'package:adguard_home_manager/constants/enums.dart';
-import 'package:adguard_home_manager/models/clients.dart';
 
 class Filters extends StatefulWidget {
   const Filters({super.key});
@@ -30,11 +29,6 @@ class Filters extends StatefulWidget {
 }
 
 class _FiltersState extends State<Filters> {
-  List<AutoClient> generateClientsList(
-      List<AutoClient> clients, List<String> ips) {
-    return clients.where((client) => ips.contains(client.ip)).toList();
-  }
-
   @override
   void initState() {
     final filteringProvider =

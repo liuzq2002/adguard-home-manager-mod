@@ -5,14 +5,11 @@ import 'package:adguard_home_manager/models/querylog_config.dart';
 import 'package:adguard_home_manager/models/statistics_config.dart';
 import 'package:adguard_home_manager/models/dns_info.dart';
 import 'package:adguard_home_manager/models/encryption.dart';
-import 'package:adguard_home_manager/models/dhcp.dart';
 import 'package:adguard_home_manager/models/rewrite_rules.dart';
 import 'package:adguard_home_manager/models/filtering.dart';
 import 'package:adguard_home_manager/models/filtering_status.dart';
 import 'package:adguard_home_manager/models/server_info.dart';
 import 'package:adguard_home_manager/models/logs.dart';
-import 'package:adguard_home_manager/models/clients.dart';
-import 'package:adguard_home_manager/models/clients_allowed_blocked.dart';
 import 'package:adguard_home_manager/models/server.dart';
 import 'package:adguard_home_manager/models/server_status.dart';
 import 'package:adguard_home_manager/classes/http_client.dart';
@@ -61,15 +58,10 @@ class ApiClientV2 {
     final results2 = await Future.wait([
       HttpRequestClient.get(urlPath: "/safebrowsing/status", server: server),
       HttpRequestClient.get(urlPath: "/parental/status", server: server),
-      HttpRequestClient.get(urlPath: "/clients", server: server),
     ]);
     if (results1.map((e) => e.successful).every((e) => e == true) &&
         results1.map((e) => e.body).every((e) => e != null)) {
       try {
-        final Map<String, dynamic>? clientsData =
-            results2[2].successful && results2[2].body != null
-                ? jsonDecode(results2[2].body!)
-                : null;
         final Map<String, dynamic>? safebrowsingData =
             results2[0].successful && results2[0].body != null
                 ? jsonDecode(results2[0].body!)
@@ -82,7 +74,6 @@ class ApiClientV2 {
           'stats': jsonDecode(results1[0].body!),
           'status': jsonDecode(results1[1].body!),
           'filtering': jsonDecode(results1[2].body!),
-          'clients': clientsData != null ? clientsData['clients'] : null,
           'safeBrowsingEnabled': safebrowsingData,
           'parentalControlEnabled': parentalData,
         };
@@ -142,37 +133,6 @@ class ApiClientV2 {
     );
   }
 
-  Future<ApiResponse> getClients() async {
-    final results = await Future.wait([
-      HttpRequestClient.get(urlPath: "/clients", server: server),
-      HttpRequestClient.get(urlPath: "/access/list", server: server),
-    ]);
-    if (results.map((e) => e.successful).every((e) => e == true) &&
-        results.map((e) => e.body).every((e) => e != null)) {
-      try {
-        final clients = Clients.fromJson(jsonDecode(results[0].body!));
-        clients.clientsAllowedBlocked =
-            ClientsAllowedBlocked.fromJson(jsonDecode(results[1].body!));
-        return ApiResponse(successful: true, content: clients);
-      } catch (e) {
-        return const ApiResponse(successful: false);
-      }
-    } else {
-      return const ApiResponse(successful: false);
-    }
-  }
-
-  Future<ApiResponse> requestAllowedBlockedClientsHosts(
-      {required Map<String, List<String>?> body}) async {
-    final result = await HttpRequestClient.post(
-        urlPath: "/access/set", server: server, body: body);
-    if (result.statusCode == 400) {
-      return const ApiResponse(
-          successful: false, content: "client_another_list");
-    }
-    return ApiResponse(successful: result.successful);
-  }
-
   Future<ApiResponse> getLogs(
       {int? count,
       int? offset,
@@ -217,33 +177,6 @@ class ApiClientV2 {
   }) async {
     final result = await HttpRequestClient.post(
         urlPath: '/filtering/set_rules', server: server, body: data);
-    return ApiResponse(successful: result.successful);
-  }
-
-  Future<ApiResponse> postAddClient({
-    required Map<String, dynamic> data,
-  }) async {
-    final result = await HttpRequestClient.post(
-        urlPath: '/clients/add', server: server, body: data);
-    return ApiResponse(successful: result.successful);
-  }
-
-  Future<ApiResponse> postUpdateClient({
-    required Map<String, dynamic> data,
-  }) async {
-    final result = await HttpRequestClient.post(
-        urlPath: '/clients/update', server: server, body: data);
-    return ApiResponse(successful: result.successful);
-  }
-
-  Future<ApiResponse> postDeleteClient({
-    required String name,
-  }) async {
-    final result = await HttpRequestClient.post(
-      urlPath: '/clients/delete',
-      server: server,
-      body: {'name': name},
-    );
     return ApiResponse(successful: result.successful);
   }
 
@@ -346,9 +279,6 @@ class ApiClientV2 {
     if (results.map((e) => e.successful).every((e) => e == true) &&
         results.map((e) => e.body).every((e) => e != null)) {
       try {
-        final clients = Clients.fromJson(jsonDecode(results[0].body!));
-        clients.clientsAllowedBlocked =
-            ClientsAllowedBlocked.fromJson(jsonDecode(results[1].body!));
         return ApiResponse(successful: true, content: {
           'updated': jsonDecode(results[0].body!)['updated'] +
               jsonDecode(results[1].body!)['updated']
@@ -378,94 +308,6 @@ class ApiClientV2 {
       urlPath: '/filtering/config',
       server: server,
       body: data,
-    );
-    return ApiResponse(successful: result.successful);
-  }
-
-  Future<ApiResponse> getDhcpData() async {
-    final results = await Future.wait([
-      HttpRequestClient.get(urlPath: '/dhcp/interfaces', server: server),
-      HttpRequestClient.get(urlPath: '/dhcp/status', server: server),
-    ]);
-    if (results.map((e) => e.successful).every((e) => e == true) &&
-        results.map((e) => e.body).every((e) => e != null)) {
-      try {
-        List<NetworkInterface> interfaces = List<NetworkInterface>.from(
-            jsonDecode(results[0].body!)
-                .entries
-                .map((entry) => NetworkInterface.fromJson(entry.value)));
-        return ApiResponse(
-            successful: true,
-            content: DhcpModel(
-                networkInterfaces: interfaces,
-                dhcpStatus: jsonDecode(results[1].body!)['message'] != null
-                    ? null
-                    : DhcpStatus.fromJson(jsonDecode(results[1].body!))));
-      } catch (e) {
-        return const ApiResponse(successful: false);
-      }
-    } else {
-      return const ApiResponse(successful: false);
-    }
-  }
-
-  Future<ApiResponse> saveDhcpConfig({
-    required Map<String, dynamic> data,
-  }) async {
-    final result = await HttpRequestClient.post(
-      urlPath: '/dhcp/set_config',
-      server: server,
-      body: data,
-    );
-    return ApiResponse(successful: result.successful);
-  }
-
-  Future<ApiResponse> resetDhcpConfig() async {
-    final result = await HttpRequestClient.post(
-      urlPath: '/dhcp/reset',
-      server: server,
-      body: {},
-    );
-    return ApiResponse(successful: result.successful);
-  }
-
-  Future<ApiResponse> deleteStaticLease(
-      {required Map<String, dynamic> data}) async {
-    final result = await HttpRequestClient.post(
-      urlPath: '/dhcp/remove_static_lease',
-      server: server,
-      body: data,
-    );
-    return ApiResponse(successful: result.successful);
-  }
-
-  Future<ApiResponse> createStaticLease(
-      {required Map<String, dynamic> data}) async {
-    final result = await HttpRequestClient.post(
-      urlPath: '/dhcp/add_static_lease',
-      server: server,
-      body: data,
-    );
-    if (result.statusCode == 400 &&
-        result.body != null &&
-        result.body!.contains('static lease already exists')) {
-      return const ApiResponse(
-          successful: false, content: "already_exists", statusCode: 400);
-    }
-    if (result.statusCode == 400 &&
-        result.body != null &&
-        result.body!.contains('server is unconfigured')) {
-      return const ApiResponse(
-          successful: false, content: "server_not_configured", statusCode: 400);
-    }
-    return ApiResponse(successful: result.successful);
-  }
-
-  Future<ApiResponse> restoreAllLeases() async {
-    final result = await HttpRequestClient.post(
-      urlPath: '/dhcp/reset_leases',
-      server: server,
-      body: {},
     );
     return ApiResponse(successful: result.successful);
   }
