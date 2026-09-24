@@ -80,6 +80,13 @@ jobs:
           flutter build apk --release --target-platform android-arm64 \
             --obfuscate --split-debug-info=build/symbols
 
+      - name: Upload debug symbols
+        uses: actions/upload-artifact@v4
+        with:
+          name: symbols-${{ env.RELEASE_TAG }}
+          path: build/symbols
+          if-no-files-found: warn
+
       - name: Publish release
         shell: bash
         env:
@@ -87,11 +94,15 @@ jobs:
         run: |
           set -euo pipefail
           APK="build/app/outputs/flutter-apk/app-release.apk"
+          # 产物命名：{项目名}-{tag}.apk，例如 adguard-home-manager-mod-v2.24.0.apk
+          # tag 本身已经包含版本号与可选的类型后缀（-pre.N / -rc.N / -beta.N）
+          ARTIFACT="adguard-home-manager-mod-${RELEASE_TAG}.apk"
           TITLE="AdGuard Home Manager Mod ${RELEASE_TAG}"
           PRE_FLAG=""
           if [ "$PRERELEASE" = "true" ]; then
             PRE_FLAG="--prerelease"
           fi
+          cp "$APK" "$ARTIFACT"
 
           if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" \
@@ -103,7 +114,7 @@ jobs:
 
           # 上传资源容易受网络影响，这里做多次重试。
           for attempt in 1 2 3 4 5; do
-            if gh release upload "$RELEASE_TAG" "$APK" --repo "$GITHUB_REPOSITORY" --clobber; then
+            if gh release upload "$RELEASE_TAG" "$ARTIFACT" --repo "$GITHUB_REPOSITORY" --clobber; then
               echo "Release asset upload succeeded on attempt ${attempt}"
               break
             fi
@@ -114,7 +125,7 @@ jobs:
           # 上传后校验，避免出现"任务成功但没挂上 APK"的情况。
           ASSETS="$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name')"
           echo "Release assets: ${ASSETS}"
-          if ! printf '%s\n' "$ASSETS" | grep -qx 'app-release.apk'; then
-            echo "::error::app-release.apk was not attached to ${RELEASE_TAG}."
+          if ! printf '%s\n' "$ASSETS" | grep -Fxq "$ARTIFACT"; then
+            echo "::error::${ARTIFACT} was not attached to ${RELEASE_TAG}."
             exit 1
           fi
