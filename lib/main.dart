@@ -159,20 +159,10 @@ class Main extends StatelessWidget {
           lightSeed: lightSeed,
           darkSeed: darkSeed,
           brightness: brightness,
-          child: MaterialApp(
+          builder: (context, lightColors, darkColors) => MaterialApp(
             title: 'AdGuard Home Manager',
-            theme: lightDynamic != null
-                ? appConfigProvider.useDynamicColor == true
-                    ? lightTheme(lightDynamic)
-                    : lightThemeOldVersions(
-                        colors[appConfigProvider.staticColor])
-                : lightThemeOldVersions(colors[appConfigProvider.staticColor]),
-            darkTheme: darkDynamic != null
-                ? appConfigProvider.useDynamicColor == true
-                    ? darkTheme(darkDynamic)
-                    : darkThemeOldVersions(
-                        colors[appConfigProvider.staticColor])
-                : darkThemeOldVersions(colors[appConfigProvider.staticColor]),
+            theme: miuixThemeData(lightColors, Brightness.light),
+            darkTheme: miuixThemeData(darkColors, Brightness.dark),
             themeMode: themeMode,
             debugShowCheckedModeBanner: false,
             localizationsDelegates: const [

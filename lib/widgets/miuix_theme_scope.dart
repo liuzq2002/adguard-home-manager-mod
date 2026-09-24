@@ -5,19 +5,24 @@ import 'package:flutter_miuix/miuix.dart';
 ///
 /// MIUIX 的配色需要通过 HCT / Monet 算法生成，开销不适合放在每次 build 里，
 /// 所以这里只在种子色变化时重新生成，其余重建直接复用缓存。
+/// [builder] 会拿到生成好的浅色 / 深色配色，用于同时构建 Material 主题。
 class MiuixThemeScope extends StatefulWidget {
   const MiuixThemeScope({
     super.key,
     required this.lightSeed,
     required this.darkSeed,
     required this.brightness,
-    required this.child,
+    required this.builder,
   });
 
   final Color lightSeed;
   final Color darkSeed;
   final Brightness brightness;
-  final Widget child;
+  final Widget Function(
+    BuildContext context,
+    MiuixColors light,
+    MiuixColors dark,
+  ) builder;
 
   @override
   State<MiuixThemeScope> createState() => _MiuixThemeScopeState();
@@ -58,7 +63,10 @@ class _MiuixThemeScopeState extends State<MiuixThemeScope> {
         darkColors: _darkColors,
         fontWeightAdjustment: MediaQuery.boldTextOf(context) ? 100 : 0,
       ),
-      child: widget.child,
+      child: Builder(
+        builder: (context) =>
+            widget.builder(context, _lightColors, _darkColors),
+      ),
     );
   }
 }
