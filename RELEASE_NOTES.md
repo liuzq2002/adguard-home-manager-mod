@@ -17,7 +17,17 @@ AdGuard Home Manager (Mod) 是基于 JGeek00/adguard-home-manager 修改的 AdGu
 - 通知栏快捷磁贴开关
 - 日志、统计、DNS、DNS 重写等核心设置
 
-## 本版变更（v2.24.0）
+## 预发布 v2.24.1Pre（清理未使用代码）
+
+- 修复精简核心兼容性：服务器状态不再强制请求已移除的 `/safesearch/status`，安全浏览/家长控制等可选接口失败时按默认值处理，不会再出现「无法加载服务器状态」
+- 修复精简核心兼容性：`/stats` 缺少 `num_replaced_safesearch` 字段时不再解析报错
+- 移除调用已删除接口的功能：客户端「安全搜索」「被拦截的服务」入口及相关页面/API
+- 删除 30+ 个无引用文件：legacy HTTP API（`http_requests.dart`）、未接入的安全搜索设置页、主题弹窗、通用/高级/访问设置页、服务器更新页、管理弹窗、侧边导航栏等
+- 删除 20+ 个无引用方法与工具函数（各 Provider 中的死 setter、无引用格式化/判断函数）
+- 移除不再被引用的依赖：`flutter_html`、`markdown`、`flutter_reorderable_list`
+- 内部版本 2.24.4+161（≥ 2.24.3，可覆盖安装）
+
+## 正式版 v2.24.0
 
 - 全局 MIUIX（HyperOS 风格）化：Material 主题由 MIUIX / Monet 配色生成，AppBar、对话框、卡片、Chip、输入框、Snackbar、底部弹层统一为平面化 + 大圆角；开关、复选框、单选框、底部导航、主页主开关卡片换成原生 MIUIX 控件
 - 移除服务器版本校验：自定义核心的日期版本号（如 v2026-09-23）不再被误判为版本过低，也不会弹出“不支持的服务器版本”

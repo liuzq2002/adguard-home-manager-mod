@@ -33,25 +33,9 @@ class RewriteRulesProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void setRewriteRulesLoadStatus(LoadStatus status, bool notify) {
-    _loadStatus = status;
-    if (notify == true) {
-      notifyListeners();
-    }
-  }
-
-  void setRewriteStatusData(RewriteStatus status) {
-    _rewriteStatus = status;
-    notifyListeners();
-  }
-
   Future<bool> addDnsRewrite(RewriteRules rule) async {
     final result = await _serversProvider!.apiClient2!.addDnsRewriteRule(
-      data: {
-        "domain": rule.domain,
-        "answer": rule.answer
-      }
-    );
+        data: {"domain": rule.domain, "answer": rule.answer});
 
     if (result.successful == true) {
       if (rewriteRules == null) {
@@ -62,28 +46,26 @@ class RewriteRulesProvider with ChangeNotifier {
       data.add(rule);
       setRewriteRulesData(data);
       return true;
-    }
-    else {
+    } else {
       notifyListeners();
       return false;
     }
   }
 
-  Future<bool> editDnsRewrite(RewriteRules newRule, RewriteRules oldRule) async {
-    final result = await _serversProvider!.apiClient2!.updateRewriteRule(
-      body: {
-        "target": {
-          "answer": oldRule.answer,
-          "domain": oldRule.domain,
-          "enabled": oldRule.enabled
-        },
-        "update": {
-          "answer": newRule.answer,
-          "domain": newRule.domain,
-          "enabled": newRule.enabled
-        }
+  Future<bool> editDnsRewrite(
+      RewriteRules newRule, RewriteRules oldRule) async {
+    final result = await _serversProvider!.apiClient2!.updateRewriteRule(body: {
+      "target": {
+        "answer": oldRule.answer,
+        "domain": oldRule.domain,
+        "enabled": oldRule.enabled
+      },
+      "update": {
+        "answer": newRule.answer,
+        "domain": newRule.domain,
+        "enabled": newRule.enabled
       }
-    );
+    });
 
     if (result.successful == true) {
       List<RewriteRules> data = rewriteRules!;
@@ -91,8 +73,7 @@ class RewriteRulesProvider with ChangeNotifier {
       data[index] = newRule;
       setRewriteRulesData(data);
       return true;
-    }
-    else {
+    } else {
       notifyListeners();
       return false;
     }
@@ -100,27 +81,20 @@ class RewriteRulesProvider with ChangeNotifier {
 
   Future<bool> deleteDnsRewrite(RewriteRules rule) async {
     final result = await _serversProvider!.apiClient2!.deleteDnsRewriteRule(
-      data: {
-        "domain": rule.domain,
-        "answer": rule.answer
-      }
-    );
+        data: {"domain": rule.domain, "answer": rule.answer});
 
     if (result.successful == true) {
       List<RewriteRules> data = rewriteRules!;
       data = data.where((item) => item.domain != rule.domain).toList();
       setRewriteRulesData(data);
       return true;
-    }
-    else {
+    } else {
       notifyListeners();
       return false;
     }
   }
 
-  Future<bool> fetchData({
-    bool? showLoading
-  }) async {
+  Future<bool> fetchData({bool? showLoading}) async {
     if (showLoading == true) {
       _loadStatus = LoadStatus.loading;
     }
@@ -136,8 +110,7 @@ class RewriteRulesProvider with ChangeNotifier {
       _loadStatus = LoadStatus.loaded;
       notifyListeners();
       return true;
-    }
-    else {
+    } else {
       if (showLoading == true) {
         _loadStatus = LoadStatus.error;
         notifyListeners();
@@ -147,20 +120,14 @@ class RewriteRulesProvider with ChangeNotifier {
   }
 
   Future enableDisableRewriteRules(bool enabled) async {
-    final result = await _serversProvider!.apiClient2!.updateDnsRewriteSettings(
-      data: {
-        "enabled": enabled
-      }
-    );
+    final result = await _serversProvider!.apiClient2!
+        .updateDnsRewriteSettings(data: {"enabled": enabled});
 
     if (result.successful == true) {
-      _rewriteStatus = RewriteStatus(
-        enabled: enabled
-      );
+      _rewriteStatus = RewriteStatus(enabled: enabled);
       notifyListeners();
       return true;
-    }
-    else {
+    } else {
       notifyListeners();
       return false;
     }
