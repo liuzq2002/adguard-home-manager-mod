@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: 'Release tag (e.g. v2.23.1)'
+        description: 'Release tag (e.g. v2.24.0)'
         required: true
-        default: 'v2.23.1'
+        default: 'v2.24.0'
         type: string
 
 permissions:
@@ -24,28 +24,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Validate pubspec version matches release tag
+      - name: Report release and internal versions
         shell: bash
         env:
           RELEASE_TAG: ${{ env.RELEASE_TAG }}
         run: |
           set -euo pipefail
           PUBSPEC_VERSION="$(sed -n 's/^version: //p' pubspec.yaml | tr -d '\r' | tr -d ' ')"
-          TAG_VERSION="${RELEASE_TAG#v}"
-
-          if [[ "$TAG_VERSION" == "$PUBSPEC_VERSION" ]]; then
-            echo "Version OK: tag ${RELEASE_TAG} matches pubspec ${PUBSPEC_VERSION}"
-          else
-            TAG_BASE="${TAG_VERSION%%+*}"
-            PUB_BASE="${PUBSPEC_VERSION%%+*}"
-            if [[ "$TAG_BASE" == "$PUB_BASE" ]]; then
-              echo "Version OK: tag ${RELEASE_TAG} matches pubspec ${PUBSPEC_VERSION} (build number taken from pubspec)"
-            else
-              echo "::error::Release tag '${RELEASE_TAG}' does not match pubspec version '${PUBSPEC_VERSION}'."
-              echo "::error::Bump pubspec.yaml (e.g. version: ${TAG_VERSION}) and commit it before releasing."
-              exit 1
-            fi
-          fi
+          echo "Release tag (official version): ${RELEASE_TAG}"
+          echo "Internal version (pubspec): ${PUBSPEC_VERSION}"
+          echo "::notice::内部版本需保持递增（Android 才能覆盖安装），正式版本号以 tag 为准。"
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -102,3 +90,5 @@ jobs:
           name: AdGuard Home Manager Mod ${{ env.RELEASE_TAG }}
           body_path: RELEASE_NOTES.md
           files: build/app/outputs/flutter-apk/app-release.apk
+          # 小改动/未测试阶段只发预发布；测试通过后在 GitHub 上取消勾选 “Set as a pre-release” 即为正式版。
+          prerelease: true
