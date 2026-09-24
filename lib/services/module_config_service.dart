@@ -67,17 +67,18 @@ class ModuleConfigService {
         return '';
       }
       final content = result.stdout.toString();
-      final line = content
-          .split('\n')
-          .firstWhere(
+      final line = content.split('\n').firstWhere(
             (line) => line.trimLeft().startsWith('PROXY_URL='),
             orElse: () => '',
           );
       if (line.isEmpty) return '';
-      final value = line
+      // 模块配置默认写入 PROXY_URL=" "（引号内一个空格）作为占位，
+      // 去掉引号后再 trim，空白值统一按“未设置”处理，不显示到输入框。
+      return line
           .substring(line.indexOf('PROXY_URL=') + 'PROXY_URL='.length)
+          .replaceAll('"', '')
+          .replaceAll("'", '')
           .trim();
-      return value.replaceAll('"', '').replaceAll("'", '');
     } catch (_) {
       return '';
     }
@@ -86,23 +87,33 @@ class ModuleConfigService {
   Future<bool> saveProxyUrl(String proxyUrl) async {
     if (!_isAndroid) return false;
     try {
-      final readResult = await Process.run('su', ['-c', 'cat $moduleConfigPath']);
+      final readResult =
+          await Process.run('su', ['-c', 'cat $moduleConfigPath']);
       if (readResult.exitCode != 0) return false;
 
+      final value = proxyUrl.trim();
       final lines = readResult.stdout.toString().split('\n');
+      final updatedLines = <String>[];
       var replaced = false;
-      for (var i = 0; i < lines.length; i++) {
-        if (lines[i].trimLeft().startsWith('PROXY_URL=')) {
-          lines[i] = 'PROXY_URL="$proxyUrl"';
+
+      for (final line in lines) {
+        if (line.trimLeft().startsWith('PROXY_URL=')) {
           replaced = true;
+          // 空值时保留模块原有的空格占位，避免变量缺失导致模块脚本报错。
+          updatedLines
+              .add(value.isNotEmpty ? 'PROXY_URL="$value"' : 'PROXY_URL=" "');
+          continue;
         }
+        updatedLines.add(line);
       }
       if (!replaced) {
-        lines.add('PROXY_URL="$proxyUrl"');
+        updatedLines
+            .add(value.isNotEmpty ? 'PROXY_URL="$value"' : 'PROXY_URL=" "');
       }
-      final content = lines.join('\n');
+      final content = updatedLines.join('\n');
 
-      final writer = await Process.start('su', ['-c', 'cat > $moduleConfigPath']);
+      final writer =
+          await Process.start('su', ['-c', 'cat > $moduleConfigPath']);
       writer.stdin.add(utf8.encode(content));
       await writer.stdin.close();
       final writeResult = await writer.exitCode;
