@@ -1,4 +1,4 @@
-name: Release
+name: Release (official)
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: 'Release tag (e.g. v2.24.0)'
+        description: 'Official release tag (e.g. v2.24.0)'
         required: true
         default: 'v2.24.0'
         type: string
@@ -16,101 +16,14 @@ permissions:
   contents: write
 
 jobs:
-  build-and-release:
-    runs-on: ubuntu-latest
-    env:
-      RELEASE_TAG: ${{ inputs.release_tag || github.ref_name }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Report release and internal versions
-        shell: bash
-        env:
-          RELEASE_TAG: ${{ env.RELEASE_TAG }}
-        run: |
-          set -euo pipefail
-          PUBSPEC_VERSION="$(sed -n 's/^version: //p' pubspec.yaml | tr -d '\r' | tr -d ' ')"
-          echo "Release tag (official version): ${RELEASE_TAG}"
-          echo "Internal version (pubspec): ${PUBSPEC_VERSION}"
-          echo "::notice::内部版本需保持递增（Android 才能覆盖安装），正式版本号以 tag 为准。"
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: 3.44.4
-          channel: stable
-          cache: true
-
-      - name: Setup signing (real keystore from secrets)
-        shell: bash
-        env:
-          KEYSTORE_B64: ${{ secrets.SIGNING_KEYSTORE_B64 }}
-          PROPS_B64: ${{ secrets.SIGNING_PROPERTIES_B64 }}
-          EXPECTED_DIGEST: 60dcf56f4ed8978b2b118bbe691f77daec68a23732264b95d14a3e3b1325f4e1
-        run: |
-          set -euo pipefail
-          if [ -z "$KEYSTORE_B64" ] || [ -z "$PROPS_B64" ]; then
-            echo "::error::Missing SIGNING_KEYSTORE_B64 / SIGNING_PROPERTIES_B64 secrets."
-            echo "::error::Add them in Settings > Secrets and variables > Actions. Refusing to sign with a throwaway key."
-            exit 1
-          fi
-          echo "$KEYSTORE_B64" | base64 -d > android/app/aghm-release.keystore
-          echo "$PROPS_B64" | base64 -d > android/key.properties
-          if [ ! -s android/app/aghm-release.keystore ]; then
-            echo "::error::Decoded keystore is empty. Check SIGNING_KEYSTORE_B64 (expected 3656 chars, starts with MIIK)."
-            exit 1
-          fi
-          STORE_PASS=$(sed -n 's/^storePassword=//p' android/key.properties)
-          if [ -z "$STORE_PASS" ]; then
-            echo "::error::key.properties missing storePassword. Check SIGNING_PROPERTIES_B64 (expected 152 chars, starts with c3Rv)."
-            exit 1
-          fi
-          ACTUAL=$(keytool -list -v -keystore android/app/aghm-release.keystore -alias aghm -storepass "$STORE_PASS" 2>/dev/null | sed -n 's/^\s*SHA256: //p' | tr -d ':' | tr 'A-F' 'a-f' | head -1)
-          echo "Decoded keystore cert SHA-256: $ACTUAL"
-          if [ "$ACTUAL" != "$EXPECTED_DIGEST" ]; then
-            echo "::error::The keystore in SIGNING_KEYSTORE_B64 is not the expected aghm keystore."
-            echo "::error::Regenerate the secret from android/app/aghm-release.keystore and retry."
-            exit 1
-          fi
-          echo "Keystore OK: matches expected aghm certificate."
-
-      - name: Build APK
-        run: |
-          flutter pub get
-          flutter build apk --release --target-platform android-arm64 \
-            --obfuscate --split-debug-info=build/symbols
-
-      # ========== 签名验证步骤已删除（按你的要求跳过检查，手动测试） ==========
-
-      - name: Create GitHub Release
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ env.RELEASE_TAG }}
-        run: |
-          set -uo pipefail
-          APK="build/app/outputs/flutter-apk/app-release.apk"
-          TITLE="AdGuard Home Manager Mod ${RELEASE_TAG}"
-
-          # 小改动/未测试阶段只发预发布；测试通过后在 GitHub 上取消勾选 “Set as a pre-release” 即为正式版。
-          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" \
-              --title "$TITLE" --notes-file RELEASE_NOTES.md --prerelease
-          else
-            gh release create "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" \
-              --title "$TITLE" --notes-file RELEASE_NOTES.md --prerelease
-          fi
-
-          # 上传资源容易受网络影响，这里做多次重试，避免整次发版白跑。
-          for attempt in 1 2 3 4 5; do
-            if gh release upload "$RELEASE_TAG" "$APK" --repo "$GITHUB_REPOSITORY" --clobber; then
-              echo "Release asset uploaded on attempt ${attempt}"
-              exit 0
-            fi
-            echo "::warning::Release asset upload attempt ${attempt} failed, retrying..."
-            sleep 15
-          done
-
-          echo "::error::Failed to upload the release asset after 5 attempts."
-          exit 1
+  # 仅处理不带 "-" 的正式 tag（例如 v2.24.0）；
+  # 预发布 tag（v2.24.1-pre.1 / -rc.1 / -beta.1）由 prerelease.yml 处理。
+  release:
+    if: ${{ !contains(inputs.release_tag || github.ref_name, '-') }}
+    uses: ./.github/workflows/_build-and-release.yml
+    secrets: inherit
+    with:
+      release_tag: ${{ inputs.release_tag || github.ref_name }}
+      prerelease: false
+    permissions:
+      contents: write

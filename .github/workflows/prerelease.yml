@@ -1,0 +1,29 @@
+name: Pre-release
+
+on:
+  push:
+    tags:
+      - 'v*-pre.*'
+      - 'v*-pre'
+      - 'v*-rc.*'
+      - 'v*-beta.*'
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Pre-release tag (e.g. v2.24.1-pre.1)'
+        required: true
+        default: 'v2.24.1-pre.1'
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  prerelease:
+    uses: ./.github/workflows/_build-and-release.yml
+    secrets: inherit
+    with:
+      release_tag: ${{ inputs.release_tag || github.ref_name }}
+      prerelease: true
+    permissions:
+      contents: write
