@@ -222,18 +222,20 @@ ThemeData miuixThemeData(MiuixColors colors, Brightness brightness) {
       fillColor: colors.surfaceContainer,
       hintStyle: TextStyle(color: colors.disabledOnSurface, fontSize: 15),
       labelStyle: TextStyle(color: colors.onSurfaceSecondary, fontSize: 15),
+      floatingLabelStyle:
+          TextStyle(color: colors.onSurfaceSecondary, fontSize: 14),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide.none,
+        borderSide: BorderSide(color: colors.outline),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide.none,
+        borderSide: BorderSide(color: colors.outline),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: colors.primary, width: 1.5),
+        borderSide: BorderSide(color: colors.primary, width: 1.6),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
@@ -241,7 +243,7 @@ ThemeData miuixThemeData(MiuixColors colors, Brightness brightness) {
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: colors.error, width: 1.5),
+        borderSide: BorderSide(color: colors.error, width: 1.6),
       ),
     ),
     snackBarTheme: SnackBarThemeData(

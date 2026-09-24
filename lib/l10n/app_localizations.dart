@@ -2858,7 +2858,7 @@ abstract class AppLocalizations {
   /// No description provided for @defaultDescription.
   ///
   /// In en, this message translates to:
-  /// **'Respond with zero IP address (0.0.0.0 for A; :: for AAAA) when blocked by Adblock-style rule; respond with the IP address specified in the rule when blocked by /etc/hosts-style rule'**
+  /// **'Return 0.0.0.0 / :: for Adblock-style rules; return the IP set in the rule for /etc/hosts-style rules'**
   String get defaultDescription;
 
   /// No description provided for @refusedDescription.

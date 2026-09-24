@@ -457,7 +457,7 @@
     "disableResolvingIpv6Description": "Drop all DNS queries for IPv6 addresses (type AAAA).",
     "blockingMode": "Blocking mode",
     "defaultMode": "Default",
-    "defaultDescription": "Respond with zero IP address (0.0.0.0 for A; :: for AAAA) when blocked by Adblock-style rule; respond with the IP address specified in the rule when blocked by /etc/hosts-style rule",
+    "defaultDescription": "Return 0.0.0.0 / :: for Adblock-style rules; return the IP set in the rule for /etc/hosts-style rules",
     "refusedDescription": "Respond with REFUSED code",
     "nxdomainDescription": "Respond with NXDOMAIN code",
     "nullIp": "Null IP",
