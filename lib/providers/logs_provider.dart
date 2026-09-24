@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:adguard_home_manager/providers/servers_provider.dart';
 import 'package:adguard_home_manager/constants/enums.dart';
 import 'package:adguard_home_manager/models/applied_filters.dart';
-import 'package:adguard_home_manager/models/clients.dart';
 import 'package:adguard_home_manager/models/logs.dart';
 
 class LogsProvider with ChangeNotifier {
@@ -15,7 +14,6 @@ class LogsProvider with ChangeNotifier {
 
   LoadStatus _loadStatus = LoadStatus.loading;
   LogsData? _logsData;
-  List<AutoClient>? _clients;
 
   DateTime? _logsOlderThan;
   String _selectedResultStatus = 'all';
@@ -36,10 +34,6 @@ class LogsProvider with ChangeNotifier {
 
   LogsData? get logsData {
     return _logsData;
-  }
-
-  List<AutoClient>? get clients {
-    return _clients;
   }
 
   DateTime? get logsOlderThan {

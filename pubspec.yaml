@@ -19,7 +19,9 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 2.24.4+161
+# 正式版本号以 git tag 为准（当前 v2.24.0）；内部版本名跟随预发布 tag（2.24.1）。
+# +build 必须单调递增（当前 162），即使版本名回退也不能减小，否则无法覆盖安装。
+version: 2.24.1+162
 
 environment:
   sdk: '>=3.4.0 <4.0.0'
@@ -47,11 +49,9 @@ dependencies:
   fl_chart: ^1.1.1
   percent_indicator: ^4.2.5
   contextmenu: ^3.0.0
-  async: ^2.13.0
   pie_chart: ^5.4.0
   segmented_button_slide: ^2.0.0
   http: ^1.5.0
-  timezone: ^0.11.1
   url_launcher: ^6.3.2
   shared_preferences: ^2.5.3
   flutter_miuix: ^1.2.0

@@ -1,5 +1,4 @@
 import 'package:adguard_home_manager/functions/time_server_disabled.dart';
-import 'package:adguard_home_manager/models/clients.dart';
 import 'package:adguard_home_manager/models/dns_statistics.dart';
 import 'package:adguard_home_manager/models/filtering_status.dart';
 
@@ -9,7 +8,6 @@ import 'package:adguard_home_manager/models/filtering_status.dart';
 /// 家长控制），这里统一按默认值处理，避免因为缺少字段导致整体解析失败。
 class ServerStatus {
   final DnsStatistics stats;
-  final List<Client> clients;
   final FilteringStatus filteringStatus;
   int timeGeneralDisabled;
   DateTime? disabledUntil;
@@ -22,7 +20,6 @@ class ServerStatus {
 
   ServerStatus({
     required this.stats,
-    required this.clients,
     required this.filteringStatus,
     required this.timeGeneralDisabled,
     this.disabledUntil,
@@ -36,9 +33,6 @@ class ServerStatus {
 
   factory ServerStatus.fromJson(Map<String, dynamic> json) => ServerStatus(
         stats: DnsStatistics.fromJson(json['stats']),
-        clients: json["clients"] != null
-            ? List<Client>.from(json["clients"].map((x) => Client.fromJson(x)))
-            : [],
         generalEnabled: json['status']['protection_enabled'] ?? false,
         timeGeneralDisabled:
             json['status']['protection_disabled_duration'] ?? 0,

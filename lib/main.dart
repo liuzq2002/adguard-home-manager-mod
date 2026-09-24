@@ -16,11 +16,9 @@ import 'package:adguard_home_manager/widgets/miuix_theme_scope.dart';
 
 import 'package:adguard_home_manager/providers/logs_provider.dart';
 import 'package:adguard_home_manager/providers/app_config_provider.dart';
-import 'package:adguard_home_manager/providers/clients_provider.dart';
 import 'package:adguard_home_manager/providers/dns_provider.dart';
 import 'package:adguard_home_manager/providers/filtering_provider.dart';
 import 'package:adguard_home_manager/providers/rewrite_rules_provider.dart';
-import 'package:adguard_home_manager/providers/dhcp_provider.dart';
 import 'package:adguard_home_manager/providers/status_provider.dart';
 import 'package:adguard_home_manager/providers/servers_provider.dart';
 import 'package:adguard_home_manager/constants/colors.dart';
@@ -40,9 +38,7 @@ void main() async {
       AppConfigProvider(sharedPreferencesInstance: sharedPreferences);
   final ServersProvider serversProvider = ServersProvider();
   final StatusProvider statusProvider = StatusProvider();
-  final ClientsProvider clientsProvider = ClientsProvider();
   final FilteringProvider filtersProvider = FilteringProvider();
-  final DhcpProvider dhcpProvider = DhcpProvider();
   final RewriteRulesProvider rewriteRulesProvider = RewriteRulesProvider();
   final DnsProvider dnsProvider = DnsProvider();
   final LogsProvider logsProvider = LogsProvider();
@@ -84,18 +80,10 @@ void main() async {
           ChangeNotifierProvider(create: ((context) => serversProvider)),
           ChangeNotifierProvider(create: ((context) => appConfigProvider)),
           ChangeNotifierProvider(create: ((context) => statusProvider)),
-          ChangeNotifierProvider(create: ((context) => clientsProvider)),
           ChangeNotifierProvider(create: ((context) => logsProvider)),
           ChangeNotifierProvider(create: ((context) => filtersProvider)),
-          ChangeNotifierProvider(create: ((context) => dhcpProvider)),
           ChangeNotifierProvider(create: ((context) => rewriteRulesProvider)),
           ChangeNotifierProvider(create: ((context) => dnsProvider)),
-          ChangeNotifierProxyProvider2<ServersProvider, StatusProvider,
-              ClientsProvider>(
-            create: (context) => clientsProvider,
-            update: (context, servers, status, clients) =>
-                clients!..update(servers, status),
-          ),
           ChangeNotifierProxyProvider2<ServersProvider, StatusProvider,
               FilteringProvider>(
             create: (context) => filtersProvider,
@@ -109,10 +97,6 @@ void main() async {
           ChangeNotifierProxyProvider<ServersProvider, LogsProvider>(
             create: (context) => logsProvider,
             update: (context, servers, logs) => logs!..update(servers),
-          ),
-          ChangeNotifierProxyProvider<ServersProvider, DhcpProvider>(
-            create: (context) => dhcpProvider,
-            update: (context, servers, dhcp) => dhcp!..update(servers),
           ),
           ChangeNotifierProxyProvider<ServersProvider, RewriteRulesProvider>(
             create: (context) => rewriteRulesProvider,

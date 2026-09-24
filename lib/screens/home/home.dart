@@ -8,7 +8,6 @@ import 'package:adguard_home_manager/screens/home/combined_chart.dart';
 import 'package:adguard_home_manager/screens/home/protection_switch.dart';
 import 'package:adguard_home_manager/screens/home/top_items/top_items_lists.dart';
 
-import 'package:adguard_home_manager/providers/clients_provider.dart';
 import 'package:adguard_home_manager/providers/logs_provider.dart';
 import 'package:adguard_home_manager/functions/number_format.dart';
 import 'package:adguard_home_manager/constants/enums.dart';
@@ -41,10 +40,6 @@ class _HomeState extends State<Home> {
     statusProvider.getServerStatus(
       withLoadingIndicator: statusProvider.serverStatus != null ? false : true,
     );
-
-    final clientsProvider =
-        Provider.of<ClientsProvider>(context, listen: false);
-    clientsProvider.fetchClients(updateLoading: false);
   }
 
   @override

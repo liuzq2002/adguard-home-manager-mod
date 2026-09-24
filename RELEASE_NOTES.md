@@ -21,11 +21,13 @@ AdGuard Home Manager (Mod) 是基于 JGeek00/adguard-home-manager 修改的 AdGu
 
 - 修复精简核心兼容性：服务器状态不再强制请求已移除的 `/safesearch/status`，安全浏览/家长控制等可选接口失败时按默认值处理，不会再出现「无法加载服务器状态」
 - 修复精简核心兼容性：`/stats` 缺少 `num_replaced_safesearch` 字段时不再解析报错
+- 移除客户端列表相关功能与接口（`/clients`、`/access/list`、`/clients/add|update|delete`、`/access/set`）
+- 移除 DHCP 页面相关功能与接口（`/dhcp/interfaces`、`/dhcp/status`、`/dhcp/set_config` 等）
 - 移除调用已删除接口的功能：客户端「安全搜索」「被拦截的服务」入口及相关页面/API
 - 删除 30+ 个无引用文件：legacy HTTP API（`http_requests.dart`）、未接入的安全搜索设置页、主题弹窗、通用/高级/访问设置页、服务器更新页、管理弹窗、侧边导航栏等
 - 删除 20+ 个无引用方法与工具函数（各 Provider 中的死 setter、无引用格式化/判断函数）
 - 移除不再被引用的依赖：`flutter_html`、`markdown`、`flutter_reorderable_list`
-- 内部版本 2.24.4+161（≥ 2.24.3，可覆盖安装）
+- 内部版本 2.24.1+162：版本名对齐预发布 tag（v2.24.1Pre），`+build` 只增不减（+161 已被上一版占用）
 
 ## 正式版 v2.24.0
 
