@@ -17,10 +17,7 @@ permissions:
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
-    # 与 pubspec.lock 中记录的镜像源保持一致，避免 CI 每次重新解析全部依赖
     env:
-      PUB_HOSTED_URL: https://pub.flutter-io.cn
-      FLUTTER_STORAGE_BASE_URL: https://storage.flutter-io.cn
       RELEASE_TAG: ${{ inputs.release_tag }}
       PRERELEASE: ${{ inputs.prerelease }}
     steps:
