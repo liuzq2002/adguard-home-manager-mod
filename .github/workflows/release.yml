@@ -84,11 +84,33 @@ jobs:
       # ========== 签名验证步骤已删除（按你的要求跳过检查，手动测试） ==========
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ env.RELEASE_TAG }}
-          name: AdGuard Home Manager Mod ${{ env.RELEASE_TAG }}
-          body_path: RELEASE_NOTES.md
-          files: build/app/outputs/flutter-apk/app-release.apk
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ env.RELEASE_TAG }}
+        run: |
+          set -uo pipefail
+          APK="build/app/outputs/flutter-apk/app-release.apk"
+          TITLE="AdGuard Home Manager Mod ${RELEASE_TAG}"
+
           # 小改动/未测试阶段只发预发布；测试通过后在 GitHub 上取消勾选 “Set as a pre-release” 即为正式版。
-          prerelease: true
+          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" \
+              --title "$TITLE" --notes-file RELEASE_NOTES.md --prerelease
+          else
+            gh release create "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" \
+              --title "$TITLE" --notes-file RELEASE_NOTES.md --prerelease
+          fi
+
+          # 上传资源容易受网络影响，这里做多次重试，避免整次发版白跑。
+          for attempt in 1 2 3 4 5; do
+            if gh release upload "$RELEASE_TAG" "$APK" --repo "$GITHUB_REPOSITORY" --clobber; then
+              echo "Release asset uploaded on attempt ${attempt}"
+              exit 0
+            fi
+            echo "::warning::Release asset upload attempt ${attempt} failed, retrying..."
+            sleep 15
+          done
+
+          echo "::error::Failed to upload the release asset after 5 attempts."
+          exit 1
