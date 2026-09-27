@@ -401,6 +401,18 @@ class AppLocalizationsTr extends AppLocalizations {
   String get processedErrorRow => 'İşlendi (Hata)';
 
   @override
+  String get processedSni => 'Processed\nSNI';
+
+  @override
+  String get processedSniRow => 'Processed (SNI)';
+
+  @override
+  String get blockedSni => 'Blocked\nSNI';
+
+  @override
+  String get blockedSniRow => 'Blocked (SNI)';
+
+  @override
   String get rewrite => 'Yeniden Yaz';
 
   @override
@@ -432,6 +444,13 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get dnsServer => 'DNS sunucusu';
+
+  @override
+  String get destination => 'Destination';
+
+  @override
+  String get destinationCopiedClipboard =>
+      'Destination copied to the clipboard';
 
   @override
   String get elapsedTime => 'İşlem süresi';
@@ -1436,6 +1455,13 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get defaultDescription =>
       'Reklam engelleme tarzı bir kural tarafından engellendiğinde sıfır IP adresi ile yanıt verir. (A için 0.0.0.0; :: AAAA için) /etc/hosts tarzı bir kural tarafından engellendiğinde kuralda belirtilen IP adresi ile yanıt verir.';
+
+  @override
+  String get strongMode => 'Strong mode';
+
+  @override
+  String get strongModeDescription =>
+      'Return an empty NODATA answer for blocked domains and reset matching TLS connections by SNI. Requires root and NFQUEUE support in the kernel.';
 
   @override
   String get refusedDescription => 'REFUSED kodu ile yanıt verir.';

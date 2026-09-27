@@ -303,6 +303,12 @@ class _Content extends StatelessWidget {
           subtitle: log.upstream,
           onTap: () => copyToClipboard(value: log.upstream!, successMessage: AppLocalizations.of(context)!.dnsServerAddressCopied)
         ),
+        if (log.destination != null && log.destination != '') LogListTile(
+          icon: Icons.route_rounded,
+          title: AppLocalizations.of(context)!.destination,
+          subtitle: log.destination,
+          onTap: () => copyToClipboard(value: log.destination!, successMessage: AppLocalizations.of(context)!.destinationCopiedClipboard),
+        ),
         LogListTile(
           icon: Icons.timer_rounded, 
           title: AppLocalizations.of(context)!.elapsedTime,

@@ -111,8 +111,9 @@ class _DnsServerSettingsScreenState extends State<DnsServerSettingsScreen> {
       _expandableEdnsIp.toggle();
     _enableDnssec = dnsProvider.dnsInfo!.dnssecEnabled;
     _disableIpv6Resolving = dnsProvider.dnsInfo!.disableIpv6;
-    // 本模块的自定义核心只使用默认拦截模式，其余模式不再提供。
-    blockingMode = "default";
+    // 本模块自定义核心只提供默认与强力模式。
+    blockingMode =
+        dnsProvider.dnsInfo!.blockingMode == "strong" ? "strong" : "default";
     _ipv4controller.text = dnsProvider.dnsInfo!.blockingIpv4;
     _ipv6controller.text = dnsProvider.dnsInfo!.blockingIpv6;
     _ttlController.text = dnsProvider.dnsInfo!.blockedResponseTtl != null
@@ -369,7 +370,15 @@ class _DnsServerSettingsScreenState extends State<DnsServerSettingsScreen> {
               radioBackgroundColor: Theme.of(context).dialogBackgroundColor,
               title: AppLocalizations.of(context)!.defaultMode,
               subtitle: AppLocalizations.of(context)!.defaultDescription,
-              onChanged: (_) {},
+              onChanged: (value) => setState(() => blockingMode = value),
+            ),
+            CustomRadioListTile(
+              groupValue: blockingMode,
+              value: "strong",
+              radioBackgroundColor: Theme.of(context).dialogBackgroundColor,
+              title: AppLocalizations.of(context)!.strongMode,
+              subtitle: AppLocalizations.of(context)!.strongModeDescription,
+              onChanged: (value) => setState(() => blockingMode = value),
             ),
             Padding(
               padding: const EdgeInsets.all(16),

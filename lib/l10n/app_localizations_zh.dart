@@ -393,6 +393,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get processedErrorRow => '已处理（错误）';
 
   @override
+  String get processedSni => '已处理\nSNI';
+
+  @override
+  String get processedSniRow => '已处理（SNI）';
+
+  @override
+  String get blockedSni => '已拦截\nSNI';
+
+  @override
+  String get blockedSniRow => '已拦截（SNI）';
+
+  @override
   String get rewrite => '重写';
 
   @override
@@ -424,6 +436,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dnsServer => 'DNS 服务器';
+
+  @override
+  String get destination => '目标地址';
+
+  @override
+  String get destinationCopiedClipboard => '目标地址已复制到剪贴板';
 
   @override
   String get elapsedTime => '处理时间';
@@ -1399,6 +1417,13 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get defaultDescription =>
       '按 Adblock 规则拦截时返回 0.0.0.0 / ::；按 /etc/hosts 规则拦截时返回规则中指定的 IP';
+
+  @override
+  String get strongMode => '强力模式';
+
+  @override
+  String get strongModeDescription =>
+      '被拦截的域名返回空解析（NODATA），同时按 SNI 重置命中规则的 TLS 连接。需要 root 权限和内核 NFQUEUE 支持。';
 
   @override
   String get refusedDescription => '返回 REFUSED 代码';
@@ -2898,6 +2923,18 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   String get processedErrorRow => '已处理（错误）';
 
   @override
+  String get processedSni => '已处理\nSNI';
+
+  @override
+  String get processedSniRow => '已处理（SNI）';
+
+  @override
+  String get blockedSni => '已拦截\nSNI';
+
+  @override
+  String get blockedSniRow => '已拦截（SNI）';
+
+  @override
   String get rewrite => '重写';
 
   @override
@@ -2929,6 +2966,12 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
 
   @override
   String get dnsServer => 'DNS 服务器';
+
+  @override
+  String get destination => '目标地址';
+
+  @override
+  String get destinationCopiedClipboard => '目标地址已复制到剪贴板';
 
   @override
   String get elapsedTime => '处理时间';
@@ -3901,6 +3944,13 @@ class AppLocalizationsZhCn extends AppLocalizationsZh {
   @override
   String get defaultDescription =>
       '按 Adblock 规则拦截时返回 0.0.0.0 / ::；按 /etc/hosts 规则拦截时返回规则中指定的 IP';
+
+  @override
+  String get strongMode => '强力模式';
+
+  @override
+  String get strongModeDescription =>
+      '被拦截的域名返回空解析（NODATA），同时按 SNI 重置命中规则的 TLS 连接。需要 root 权限和内核 NFQUEUE 支持。';
 
   @override
   String get refusedDescription => '返回 REFUSED 代码';
