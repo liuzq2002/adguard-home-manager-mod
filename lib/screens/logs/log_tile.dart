@@ -140,6 +140,7 @@ class LogTile extends StatelessWidget {
     }
 
     final domainBlocked = isDomainBlocked(log.reason);
+    final isSniLog = log.reason == 'FilteredSNI' || log.reason == 'NotFilteredSNI';
 
     if (twoColumns && !(useAlwaysNormalTile == true)) {
       return Padding(
@@ -162,7 +163,7 @@ class LogTile extends StatelessWidget {
                         domain: log.question.name!,
                         newStatus:
                             domainBlocked == true ? 'unblock' : 'block')),
-              if (filteringProvider.filtering != null)
+              if (filteringProvider.filtering != null && !isSniLog)
                 MenuOption(
                     title: domainBlocked == true
                         ? AppLocalizations.of(context)!.unblockThisClientOnly
@@ -374,7 +375,7 @@ class LogTile extends StatelessWidget {
                   action: () => blockUnblock(
                       domain: log.question.name!,
                       newStatus: domainBlocked == true ? 'unblock' : 'block')),
-            if (filteringProvider.filtering != null)
+            if (filteringProvider.filtering != null && !isSniLog)
               MenuOption(
                   title: domainBlocked == true
                       ? AppLocalizations.of(context)!.unblockThisClientOnly

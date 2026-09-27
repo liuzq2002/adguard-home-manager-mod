@@ -399,6 +399,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get processedErrorRow => 'Processed (error)';
 
   @override
+  String get processedSni => 'Processed\nSNI';
+
+  @override
+  String get processedSniRow => 'Processed (SNI)';
+
+  @override
+  String get blockedSni => 'Blocked\nSNI';
+
+  @override
+  String get blockedSniRow => 'Blocked (SNI)';
+
+  @override
   String get rewrite => 'Rewrite';
 
   @override
@@ -430,6 +442,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dnsServer => 'DNS server';
+
+  @override
+  String get destination => 'Destination';
+
+  @override
+  String get destinationCopiedClipboard =>
+      'Destination copied to the clipboard';
 
   @override
   String get elapsedTime => 'Elapsed time';
@@ -1430,6 +1449,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get defaultDescription =>
       'Return 0.0.0.0 / :: for Adblock-style rules; return the IP set in the rule for /etc/hosts-style rules';
+
+  @override
+  String get strongMode => 'Strong mode';
+
+  @override
+  String get strongModeDescription =>
+      'Return an empty NODATA answer for blocked domains and reset matching TLS connections by SNI. Requires root and NFQUEUE support in the kernel.';
 
   @override
   String get refusedDescription => 'Respond with REFUSED code';

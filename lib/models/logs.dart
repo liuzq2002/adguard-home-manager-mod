@@ -24,8 +24,12 @@ class LogsData {
   });
 
   factory LogsData.fromJson(Map<String, dynamic> json) => LogsData(
-    data: List<Log>.from(json["data"].map((x) => Log.fromJson(x))),
-    oldest: json["oldest"] != '' ? DateTime.parse(json["oldest"]) : null,
+    data: json["data"] != null
+        ? List<Log>.from(json["data"].map((x) => Log.fromJson(x)))
+        : [],
+    oldest: json["oldest"] is String && json["oldest"].isNotEmpty
+        ? DateTime.tryParse(json["oldest"])
+        : null,
   );
 
   Map<String, dynamic> toJson() => {
@@ -47,6 +51,7 @@ class Log {
   final String? status;
   final DateTime time;
   final String? upstream;
+  final String? destination;
   final List<Answer> answer;
   final int? filterId;
   final String? rule;
@@ -65,6 +70,7 @@ class Log {
     this.status,
     required this.time,
     required this.upstream,
+    this.destination,
     required this.answer,
     this.filterId,
     this.rule,
@@ -73,17 +79,18 @@ class Log {
 
   factory Log.fromJson(Map<String, dynamic> json) => Log(
     answerDnssec: json["answer_dnssec"],
-    cached: json["cached"] ?? false,
-    client: json["client"],
+    cached: json["cached"] == true,
+    client: json["client"]?.toString() ?? "",
     clientInfo: json["client_info"] != null ? ClientInfo.fromJson(json["client_info"]) : null,
-    clientProto: json["client_proto"],
-    elapsedMs: json["elapsedMs"],
+    clientProto: json["client_proto"]?.toString(),
+    elapsedMs: json["elapsedMs"]?.toString() ?? "",
     question: Question.fromJson(json["question"]),
-    reason: json["reason"],
+    reason: json["reason"]?.toString() ?? "NotFilteredNotFound",
     rules: json["rules"] != null ? List<Rule>.from(json["rules"].map((x) => Rule.fromJson(x))) : [],
-    status: json["status"],
-    time: DateTime.parse(json["time"]),
-    upstream: json["upstream"],
+    status: json["status"]?.toString(),
+    time: DateTime.tryParse(json["time"]?.toString() ?? "") ?? DateTime.fromMillisecondsSinceEpoch(0),
+    upstream: json["upstream"]?.toString(),
+    destination: json["destination"]?.toString(),
     answer: json["answer"] != null ? List<Answer>.from(json["answer"].map((x) => Answer.fromJson(x))) : [],
     filterId: json["filterId"],
     rule: json["rule"],
@@ -103,6 +110,7 @@ class Log {
     "status": status,
     "time": time.toIso8601String(),
     "upstream": upstream,
+    "destination": destination,
     "answer": List<dynamic>.from(answer.map((x) => x.toJson())),
     "filterId": filterId,
     "rule": rule,
@@ -122,9 +130,9 @@ class Answer {
   });
 
   factory Answer.fromJson(Map<String, dynamic> json) => Answer(
-    type: json["type"],
-    value: json["value"],
-    ttl: json["ttl"],
+    type: json["type"]?.toString() ?? "",
+    value: json["value"]?.toString() ?? "",
+    ttl: json["ttl"] ?? 0,
   );
 
   Map<String, dynamic> toJson() => {
@@ -148,10 +156,10 @@ class ClientInfo {
   });
 
   factory ClientInfo.fromJson(Map<String, dynamic> json) => ClientInfo(
-    whois: Whois.fromJson(Map<String, dynamic>.from(json["whois"])),
-    name: json["name"],
-    disallowedRule: json["disallowed_rule"],
-    disallowed: json["disallowed"],
+    whois: json["whois"] != null ? Whois.fromJson(Map<String, dynamic>.from(json["whois"])) : Whois(),
+    name: json["name"]?.toString() ?? "",
+    disallowedRule: json["disallowed_rule"]?.toString() ?? "",
+    disallowed: json["disallowed"] == true,
   );
 
   Map<String, dynamic> toJson() => {
@@ -182,9 +190,9 @@ class Question {
   });
 
   factory Question.fromJson(Map<String, dynamic> json) => Question(
-    questionClass: json["class"],
-    name: json["name"],
-    type: json["type"],
+    questionClass: json["class"]?.toString() ?? "",
+    name: json["name"]?.toString(),
+    type: json["type"]?.toString() ?? "",
   );
 
   Map<String, dynamic> toJson() => {
@@ -205,8 +213,8 @@ class Rule {
 
 
   factory Rule.fromJson(Map<String, dynamic> json) => Rule(
-    filterListId: json["filter_list_id"],
-    text: json["text"],
+    filterListId: json["filter_list_id"] ?? 0,
+    text: json["text"]?.toString() ?? "",
   );
 
   Map<String, dynamic> toJson() => {

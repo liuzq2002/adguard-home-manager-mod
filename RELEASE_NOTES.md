@@ -17,6 +17,13 @@ AdGuard Home Manager (Mod) 是基于 JGeek00/adguard-home-manager 修改的 AdGu
 - 通知栏快捷磁贴开关
 - 日志、统计、DNS、DNS 重写等核心设置
 
+## 未发布
+
+- DNS 设置新增“强力模式”：使用空 NODATA 响应，并按 SNI 重置命中过滤规则的 TLS 连接
+- 日志页支持显示“已拦截（SNI）”与“已处理（SNI）”，并修复自定义核心新增 SNI 日志后的解析兼容性
+- 日志详情支持显示 SNI 连接的目标地址（`destination`）
+- 修复 DNS 设置保存后本地状态未同步的问题
+
 ## 预发布 v2.24.1-pre.2（清理未使用代码 + 构建优化）
 
 - 产物命名规范：`adguard-home-manager-mod-{tag}.apk`（例如 `adguard-home-manager-mod-v2.24.0.apk`），不再带 ABI 后缀

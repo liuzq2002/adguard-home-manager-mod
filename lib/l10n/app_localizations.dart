@@ -875,6 +875,30 @@ abstract class AppLocalizations {
   /// **'Processed (error)'**
   String get processedErrorRow;
 
+  /// No description provided for @processedSni.
+  ///
+  /// In en, this message translates to:
+  /// **'Processed\nSNI'**
+  String get processedSni;
+
+  /// No description provided for @processedSniRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Processed (SNI)'**
+  String get processedSniRow;
+
+  /// No description provided for @blockedSni.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked\nSNI'**
+  String get blockedSni;
+
+  /// No description provided for @blockedSniRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked (SNI)'**
+  String get blockedSniRow;
+
   /// No description provided for @rewrite.
   ///
   /// In en, this message translates to:
@@ -940,6 +964,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'DNS server'**
   String get dnsServer;
+
+  /// No description provided for @destination.
+  ///
+  /// In en, this message translates to:
+  /// **'Destination'**
+  String get destination;
+
+  /// No description provided for @destinationCopiedClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Destination copied to the clipboard'**
+  String get destinationCopiedClipboard;
 
   /// No description provided for @elapsedTime.
   ///
@@ -2860,6 +2896,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Return 0.0.0.0 / :: for Adblock-style rules; return the IP set in the rule for /etc/hosts-style rules'**
   String get defaultDescription;
+
+  /// No description provided for @strongMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Strong mode'**
+  String get strongMode;
+
+  /// No description provided for @strongModeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Return an empty NODATA answer for blocked domains and reset matching TLS connections by SNI. Requires root and NFQUEUE support in the kernel.'**
+  String get strongModeDescription;
 
   /// No description provided for @refusedDescription.
   ///

@@ -53,6 +53,8 @@ class ServerAuth {
       return AuthStatus.timeoutException;
     } on HandshakeException {
       return AuthStatus.handshakeException;
+    } on HttpException {
+      return AuthStatus.socketException;
     } catch (e) {
       return AuthStatus.unknown;
     }
@@ -66,6 +68,15 @@ class ServerAuth {
       }
       else if (result.statusCode == 401 || result.statusCode == 403) {
         return AuthStatus.invalidCredentials;
+      }
+      else if (result.exception == ExceptionType.socket || result.exception == ExceptionType.http) {
+        return AuthStatus.socketException;
+      }
+      else if (result.exception == ExceptionType.timeout) {
+        return AuthStatus.timeoutException;
+      }
+      else if (result.exception == ExceptionType.handshake) {
+        return AuthStatus.handshakeException;
       }
       else {
         return AuthStatus.unknown;
