@@ -17,8 +17,11 @@ AdGuard Home Manager (Mod) 是基于 JGeek00/adguard-home-manager 修改的 AdGu
 - 通知栏快捷磁贴开关
 - 日志、统计、DNS、DNS 重写等核心设置
 
-## 预发布 v2.24.1-pre.3（Flutter 3.47.5 + Built-in Kotlin + SNI 日志兼容）
+## 预发布 v2.24.1-pre.4（快捷磁贴重启恢复）
 
+- 修复重启后快捷磁贴无法重新绑定、状态灰化或点击无响应的问题
+- 开机完成和应用启动后主动请求系统重新监听磁贴，并在模块未就绪时自动重试
+- 磁贴暂时读不到管理端口时保持可点击，打开管理器而不是直接置为不可用
 - 构建工具链升级：Flutter 3.47.5、Dart 3.13.4、AGP 9.2.1、Gradle 9.7.1、Java 17，并启用 AGP Built-in Kotlin
 - Kotlin 2.4.0 仅保留在 Gradle classpath 上作为版本桥接，不再由 app 模块应用 Kotlin Gradle Plugin
 - DNS 设置新增“强力模式”：使用空 NODATA 响应，并按 SNI 重置命中过滤规则的 TLS 连接
