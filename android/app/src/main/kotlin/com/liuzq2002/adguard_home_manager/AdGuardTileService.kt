@@ -148,6 +148,20 @@ object AdGuardModuleController {
 }
 
 class AdGuardTileService : TileService() {
+    private val mainHandler = Handler(Looper.getMainLooper())
+    @Volatile
+    private var listening = false
+    private var refreshGeneration = 0
+
+    override fun onTileAdded() {
+        super.onTileAdded()
+        TileService.requestListeningState(
+            this,
+            android.content.ComponentName(this, AdGuardTileService::class.java)
+        )
+        updateTile(Tile.STATE_INACTIVE)
+    }
+
     override fun onClick() {
         super.onClick()
         val tile = qsTile ?: return
@@ -156,7 +170,8 @@ class AdGuardTileService : TileService() {
             try {
                 val port = AdGuardModuleController.readPort(this)
                 if (port == null) {
-                    updateTile(Tile.STATE_UNAVAILABLE)
+                    updateTile(Tile.STATE_INACTIVE)
+                    openManager()
                     return@Thread
                 }
                 val current = AdGuardModuleController.getProtectionState(port)
@@ -167,38 +182,84 @@ class AdGuardTileService : TileService() {
                     updateTile(if (target) Tile.STATE_ACTIVE else Tile.STATE_INACTIVE)
                 } else {
                     Log.w("AdGuardTile", "toggle failed: port=$port")
-                    updateTile(Tile.STATE_UNAVAILABLE)
+                    updateTile(Tile.STATE_INACTIVE)
+                    openManager()
                 }
             } catch (t: Throwable) {
                 Log.e("AdGuardTile", "toggle failed", t)
-                updateTile(Tile.STATE_UNAVAILABLE)
+                updateTile(Tile.STATE_INACTIVE)
+                openManager()
             }
         }.start()
     }
 
     override fun onStartListening() {
         super.onStartListening()
+        listening = true
+        refreshGeneration++
+        refreshTile(0, refreshGeneration)
+    }
+
+    override fun onStopListening() {
+        listening = false
+        refreshGeneration++
+        super.onStopListening()
+    }
+
+    private fun refreshTile(attempt: Int, generation: Int) {
         Thread {
             try {
                 val port = AdGuardModuleController.readPort(this)
+                if (!listening || generation != refreshGeneration) return@Thread
                 if (port == null) {
-                    Log.w("AdGuardTile", "listening: no port (su/yaml failed)")
-                    updateTile(Tile.STATE_UNAVAILABLE)
+                    Log.w("AdGuardTile", "listening: no port (su/yaml failed), attempt=$attempt")
+                    updateTile(Tile.STATE_INACTIVE)
+                    scheduleRetry(attempt, generation)
                     return@Thread
                 }
                 val enabled = AdGuardModuleController.getProtectionState(port)
                 val state = when (enabled) {
                     true -> Tile.STATE_ACTIVE
                     false -> Tile.STATE_INACTIVE
-                    null -> Tile.STATE_UNAVAILABLE
+                    null -> Tile.STATE_INACTIVE
                 }
                 Log.i("AdGuardTile", "listening: port=$port enabled=$enabled state=$state")
                 updateTile(state)
+                if (enabled == null) scheduleRetry(attempt, generation)
             } catch (t: Throwable) {
                 Log.e("AdGuardTile", "refresh failed", t)
-                updateTile(Tile.STATE_UNAVAILABLE)
+                updateTile(Tile.STATE_INACTIVE)
+                scheduleRetry(attempt, generation)
             }
         }.start()
+    }
+
+    private fun scheduleRetry(attempt: Int, generation: Int) {
+        if (attempt >= 5) return
+        mainHandler.postDelayed(
+            {
+                if (listening && generation == refreshGeneration) {
+                    refreshTile(attempt + 1, generation)
+                }
+            },
+            3000
+        )
+    }
+
+    private fun openManager() {
+        mainHandler.post {
+            try {
+                val intent = android.content.Intent(this, MainActivity::class.java).apply {
+                    addFlags(
+                        android.content.Intent.FLAG_ACTIVITY_NEW_TASK or
+                            android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    )
+                }
+                startActivityAndCollapse(intent)
+            } catch (t: Throwable) {
+                Log.e("AdGuardTile", "open manager failed", t)
+            }
+        }
     }
 
     private fun updateTile(state: Int) {
