@@ -132,27 +132,26 @@ class DnsProvider with ChangeNotifier {
     final result =
         await _serversProvider!.apiClient2!.setDnsConfig(data: value);
 
-    void updateValue(dynamic parameter, dynamic value) {
-      if (value != null) {
-        parameter = value;
-      }
-    }
-
     if (result.successful == true) {
       DnsInfo data = dnsInfo!;
-      updateValue(data.ratelimit, value['ratelimit']);
-      updateValue(data.ednsCsEnabled, value['edns_cs_enabled']);
-      updateValue(data.dnssecEnabled, value['dnssec_enabled']);
-      updateValue(data.disableIpv6, value['disable_ipv6']);
-      updateValue(data.blockingMode, value['blocking_mode']);
-      updateValue(data.blockingIpv4, value['blocking_ipv4']);
-      updateValue(data.blockingIpv6, value['blocking_ipv6']);
-      updateValue(data.blockedResponseTtl, value['blocked_response_ttl']);
-      updateValue(
-          data.ratelimitSubnetLenIpv4, value['ratelimit_subnet_len_ipv4']);
-      updateValue(
-          data.ratelimitSubnetLenIpv6, value['ratelimit_subnet_len_ipv6']);
-      updateValue(data.ratelimitWhitelist, value['ratelimit_whitelist']);
+      data.ratelimit = value['ratelimit'] ?? data.ratelimit;
+      data.ednsCsEnabled = value['edns_cs_enabled'] ?? data.ednsCsEnabled;
+      data.ednsCsUseCustom =
+          value['edns_cs_use_custom'] ?? data.ednsCsUseCustom;
+      data.ednsCsCustomIp = value['edns_cs_custom_ip'] ?? data.ednsCsCustomIp;
+      data.dnssecEnabled = value['dnssec_enabled'] ?? data.dnssecEnabled;
+      data.disableIpv6 = value['disable_ipv6'] ?? data.disableIpv6;
+      data.blockingMode = value['blocking_mode'] ?? data.blockingMode;
+      data.blockingIpv4 = value['blocking_ipv4'] ?? data.blockingIpv4;
+      data.blockingIpv6 = value['blocking_ipv6'] ?? data.blockingIpv6;
+      data.blockedResponseTtl =
+          value['blocked_response_ttl'] ?? data.blockedResponseTtl;
+      data.ratelimitSubnetLenIpv4 =
+          value['ratelimit_subnet_len_ipv4'] ?? data.ratelimitSubnetLenIpv4;
+      data.ratelimitSubnetLenIpv6 =
+          value['ratelimit_subnet_len_ipv6'] ?? data.ratelimitSubnetLenIpv6;
+      data.ratelimitWhitelist =
+          value['ratelimit_whitelist'] ?? data.ratelimitWhitelist;
       setDnsInfoData(data);
       return result;
     } else {

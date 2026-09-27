@@ -114,6 +114,30 @@ Map<String, dynamic> getFilteredStatus(BuildContext context, AppConfigProvider a
         'icon': Icons.gpp_bad_rounded,
       };
 
+    case 'FilteredSNI':
+      return {
+        'filtered': true,
+        'label': isRow == true
+          ? AppLocalizations.of(context)!.blockedSniRow
+          : AppLocalizations.of(context)!.blockedSni,
+        'color': appConfigProvider.useThemeColorForStatus == true
+          ? Colors.grey
+          : Colors.red,
+        'icon': Icons.gpp_bad_rounded,
+      };
+
+    case 'NotFilteredSNI':
+      return {
+        'filtered': false,
+        'label': isRow == true
+          ? AppLocalizations.of(context)!.processedSniRow
+          : AppLocalizations.of(context)!.processedSni,
+        'color': appConfigProvider.useThemeColorForStatus == true
+          ? Theme.of(context).colorScheme.primary
+          : Colors.green,
+        'icon': Icons.verified_user_rounded,
+      };
+
     case 'Rewrite':
     case 'RewriteEtcHosts':
     case 'RewriteRule':
@@ -125,7 +149,12 @@ Map<String, dynamic> getFilteredStatus(BuildContext context, AppConfigProvider a
       };
 
     default:
-      return {'filtered': null, 'label': 'Unknown'};
+      return {
+        'filtered': null,
+        'label': 'Unknown',
+        'color': Colors.grey,
+        'icon': Icons.help_outline_rounded,
+      };
   }
 }
 
@@ -157,6 +186,12 @@ bool isDomainBlocked(String filterKey) {
 
     case 'FilteredBlockedService':
       return true;
+
+    case 'FilteredSNI':
+      return true;
+
+    case 'NotFilteredSNI':
+      return false;
 
     case 'Rewrite':
     case 'RewriteEtcHosts':
