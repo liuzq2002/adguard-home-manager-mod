@@ -234,28 +234,46 @@ class StatusProvider with ChangeNotifier {
     final rules = await _serversProvider!.apiClient2!.getFilteringRules();
 
     if (rules.successful == true) {
-      FilteringStatus oldStatus = _serverStatus!.filteringStatus;
+      final currentStatus = rules.content as FilteringStatus;
+      final blockRule = '||$domain^\$important';
+      final unblockRule = '@@||$domain^\$important';
+      final legacyBlockRule = '||$domain^';
+      final legacyUnblockRule = '@@||$domain^';
+      final managedRules = {
+        blockRule,
+        unblockRule,
+        legacyBlockRule,
+        legacyUnblockRule,
+      };
 
-      List<String> newRules = (rules.content as FilteringStatus)
-          .userRules
-          .where((d) => !d.contains(domain))
+      List<String> newRules = currentStatus.userRules
+          .where((rule) => !managedRules.contains(rule))
           .toList();
       if (newStatus == 'block') {
-        newRules.add("||$domain^");
+        newRules.add(blockRule);
       } else if (newStatus == 'unblock') {
-        newRules.add("@@||$domain^");
+        newRules.add(unblockRule);
       }
-      FilteringStatus newObj = _serverStatus!.filteringStatus;
-      newObj.userRules = newRules;
-      _filteringStatus = newObj;
+
+      final previousFilteringStatus = _filteringStatus;
+      _filteringStatus = FilteringStatus(
+        filters: currentStatus.filters,
+        whitelistFilters: currentStatus.whitelistFilters,
+        userRules: newRules,
+        interval: currentStatus.interval,
+        enabled: currentStatus.enabled,
+      );
 
       final result = await _serversProvider!.apiClient2!
           .postFilteringRules(data: {'rules': newRules});
 
       if (result.successful == true) {
+        // Drop any blocked DNS answer cached before the new rule was applied.
+        await _serversProvider!.apiClient2!.resetDnsCache();
+        await getFilteringRules();
         return true;
       } else {
-        _filteringStatus = oldStatus;
+        _filteringStatus = previousFilteringStatus;
         return false;
       }
     } else {
