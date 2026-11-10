@@ -4,7 +4,9 @@
 
 <h5 align="center">
   <b>
-    AdGuard Home Manager (Mod) —— 面向 AdGuard Home For Android 模块的管理器
+    
+# AdGuard Home Manager (Mod) —— 面向 AdGuard Home For Android 模块的管理器
+## 近期有人用我的署名仿冒，请注意甄别（非liuzq2002 Github下载一律为仿冒）
   </b>
 </h5>
 
