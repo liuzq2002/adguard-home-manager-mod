@@ -28,8 +28,10 @@ class AddFiltersButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final filteringProvider = Provider.of<FilteringProvider>(context);
-    final appConfigProvider = Provider.of<AppConfigProvider>(context);
+    final filteringProvider =
+        Provider.of<FilteringProvider>(context, listen: false);
+    final appConfigProvider =
+        Provider.of<AppConfigProvider>(context, listen: false);
 
     final width = MediaQuery.of(context).size.width;
 

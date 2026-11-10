@@ -6,10 +6,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
 import 'app_localizations_en.dart';
-import 'app_localizations_es.dart';
-import 'app_localizations_pl.dart';
-import 'app_localizations_ru.dart';
-import 'app_localizations_tr.dart';
 import 'app_localizations_zh.dart';
 
 // ignore_for_file: type=lint
@@ -99,12 +95,7 @@ abstract class AppLocalizations {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
-    Locale('es'),
-    Locale('pl'),
-    Locale('ru'),
-    Locale('tr'),
-    Locale('zh'),
-    Locale('zh', 'CN')
+    Locale('zh')
   ];
 
   /// No description provided for @home.
@@ -3365,6 +3356,18 @@ abstract class AppLocalizations {
   /// **'Customize this application'**
   String get customizationDescription;
 
+  /// No description provided for @language.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get language;
+
+  /// No description provided for @languageDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Change the language of the app'**
+  String get languageDescription;
+
   /// No description provided for @color.
   ///
   /// In en, this message translates to:
@@ -5062,44 +5065,18 @@ class _AppLocalizationsDelegate
   }
 
   @override
-  bool isSupported(Locale locale) => <String>[
-        'en',
-        'es',
-        'pl',
-        'ru',
-        'tr',
-        'zh'
-      ].contains(locale.languageCode);
+  bool isSupported(Locale locale) =>
+      <String>['en', 'zh'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
-  // Lookup logic when language+country codes are specified.
-  switch (locale.languageCode) {
-    case 'zh':
-      {
-        switch (locale.countryCode) {
-          case 'CN':
-            return AppLocalizationsZhCn();
-        }
-        break;
-      }
-  }
-
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
     case 'en':
       return AppLocalizationsEn();
-    case 'es':
-      return AppLocalizationsEs();
-    case 'pl':
-      return AppLocalizationsPl();
-    case 'ru':
-      return AppLocalizationsRu();
-    case 'tr':
-      return AppLocalizationsTr();
     case 'zh':
       return AppLocalizationsZh();
   }

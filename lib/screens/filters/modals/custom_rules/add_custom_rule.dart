@@ -1,10 +1,6 @@
 import 'package:adguard_home_manager/constants/regexps.dart';
 import 'package:flutter/material.dart';
-import 'package:segmented_button_slide/segmented_button_slide.dart';
 import 'package:adguard_home_manager/l10n/app_localizations.dart';
-
-
-import 'package:adguard_home_manager/screens/filters/modals/custom_rules/custom_rule_docs.dart';
 
 enum _BlockingPresets { block, unblock, custom }
 
@@ -28,7 +24,7 @@ class _AddCustomRuleState extends State<AddCustomRule> {
 
   _BlockingPresets _preset = _BlockingPresets.block;
 
-  bool _addImportant = false;
+  bool _addImportant = true;
 
   bool _checkValidValues() {
     if (
@@ -266,32 +262,28 @@ class _CustomRuleEditor extends StatelessWidget {
           ),
         ),
         Container(height: 30),
-        SegmentedButtonSlide(
-          entries: [
-            SegmentedButtonSlideEntry(label: AppLocalizations.of(context)!.block),
-            SegmentedButtonSlideEntry(label: AppLocalizations.of(context)!.unblock),
-            SegmentedButtonSlideEntry(label: AppLocalizations.of(context)!.custom),
-          ], 
-          selectedEntry: preset.index,
-          onChange: (v) => setPreset(_BlockingPresets.values[v]), 
-          colors: SegmentedButtonSlideColors(
-            barColor: Theme.of(context).colorScheme.primary.withOpacity(0.2), 
-            backgroundSelectedColor: Theme.of(context).colorScheme.primary, 
-          ),
-          textOverflow: TextOverflow.ellipsis,
-          height: 40,
-          margin: const EdgeInsets.symmetric(
-            horizontal: 24,
-          ),
-          selectedTextStyle: TextStyle(
-            color: Theme.of(context).colorScheme.onPrimary,
-            fontWeight: FontWeight.w700
-          ),
-          unselectedTextStyle: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
-          hoverTextStyle: TextStyle(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: SizedBox(
+            width: double.infinity,
+            child: SegmentedButton<_BlockingPresets>(
+              segments: [
+                ButtonSegment(
+                  value: _BlockingPresets.block,
+                  label: Text(AppLocalizations.of(context)!.block),
+                ),
+                ButtonSegment(
+                  value: _BlockingPresets.unblock,
+                  label: Text(AppLocalizations.of(context)!.unblock),
+                ),
+                ButtonSegment(
+                  value: _BlockingPresets.custom,
+                  label: Text(AppLocalizations.of(context)!.custom),
+                ),
+              ],
+              selected: {preset},
+              onSelectionChanged: (s) => setPreset(s.first),
+            ),
           ),
         ),
         Container(height: 20),
@@ -323,8 +315,6 @@ class _CustomRuleEditor extends StatelessWidget {
             ),
           ),
         ),
-        Container(height: 20),
-        const CustomRuleDocs(),
         Container(height: 20)
       ]
     );

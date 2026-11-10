@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:adguard_home_manager/l10n/app_localizations.dart';
 
-
-import 'package:adguard_home_manager/screens/filters/modals/custom_rules/custom_rule_docs.dart';
-
 import 'package:adguard_home_manager/providers/filtering_provider.dart';
 
 class EditCustomRules extends StatefulWidget {
@@ -180,8 +177,6 @@ class _CustomRulesRawEditor extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 24),
-        const CustomRuleDocs(),
         const SizedBox(height: 16),
       ],
     );

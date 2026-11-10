@@ -2,17 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:adguard_home_manager/l10n/app_localizations.dart';
 
-import 'package:adguard_home_manager/screens/home/appbar.dart';
-import 'package:adguard_home_manager/screens/home/chart.dart';
-import 'package:adguard_home_manager/screens/home/combined_chart.dart';
+import 'package:adguard_home_manager/screens/home/summary_cards.dart';
 import 'package:adguard_home_manager/screens/home/protection_switch.dart';
-import 'package:adguard_home_manager/screens/home/top_items/top_items_lists.dart';
-
-import 'package:adguard_home_manager/providers/logs_provider.dart';
-import 'package:adguard_home_manager/functions/number_format.dart';
+import 'package:adguard_home_manager/services/module_config_service.dart';
 import 'package:adguard_home_manager/constants/enums.dart';
 import 'package:adguard_home_manager/providers/status_provider.dart';
-import 'package:adguard_home_manager/providers/app_config_provider.dart';
 import 'package:adguard_home_manager/providers/servers_provider.dart';
 
 class Home extends StatefulWidget {
@@ -23,8 +17,6 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  final ScrollController scrollController = ScrollController();
-
   @override
   void initState() {
     super.initState();
@@ -38,7 +30,7 @@ class _HomeState extends State<Home> {
 
     final statusProvider = Provider.of<StatusProvider>(context, listen: false);
     statusProvider.getServerStatus(
-      withLoadingIndicator: statusProvider.serverStatus != null ? false : true,
+      withLoadingIndicator: statusProvider.serverStatus == null,
     );
   }
 
@@ -46,10 +38,8 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     final serversProvider = Provider.of<ServersProvider>(context);
     final statusProvider = Provider.of<StatusProvider>(context);
-    final appConfigProvider = Provider.of<AppConfigProvider>(context);
-    final logsProvider = Provider.of<LogsProvider>(context);
-
-    final width = MediaQuery.of(context).size.width;
+    final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
 
     if (serversProvider.selectedServer == null ||
         serversProvider.apiClient2 == null) {
@@ -63,7 +53,7 @@ class _HomeState extends State<Home> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 18,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  color: colorScheme.onSurfaceVariant,
                 ),
               ),
             ),
@@ -72,178 +62,93 @@ class _HomeState extends State<Home> {
       );
     }
 
+    final status = statusProvider.serverStatus;
+
     return Scaffold(
-      body: SafeArea(
-        top: false,
-        child: NestedScrollView(
-          controller: scrollController,
-          headerSliverBuilder: (context, innerBoxIsScrolled) => [
-            SliverOverlapAbsorber(
-              handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
-              sliver: HomeAppBar(innerBoxScrolled: innerBoxIsScrolled),
-            )
-          ],
-          body: SafeArea(
-            top: false,
-            bottom: false,
-            child: Builder(
-              builder: (context) => RefreshIndicator(
-                color: Theme.of(context).colorScheme.primary,
-                displacement: 110,
-                onRefresh: () async {
-                  await statusProvider.getServerStatus();
-                },
-                child: CustomScrollView(
-                  slivers: [
-                    SliverOverlapInjector(
-                      handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
-                          context),
+      appBar: AppBar(
+        centerTitle: false,
+        leading: Icon(
+          status != null
+              ? (status.generalEnabled
+                  ? Icons.gpp_good_rounded
+                  : Icons.gpp_bad_rounded)
+              : Icons.shield_rounded,
+          size: 26,
+          color: status != null
+              ? (status.generalEnabled ? Colors.green : Colors.red)
+              : colorScheme.onSurfaceVariant,
+        ),
+        title: Text(l10n.home),
+        actions: [
+          IconButton(
+            onPressed: () => statusProvider.getServerStatus(
+              withLoadingIndicator: false,
+            ),
+            icon: const Icon(Icons.refresh_rounded),
+            tooltip: l10n.refresh,
+          ),
+          const SizedBox(width: 4),
+        ],
+      ),
+      body: RefreshIndicator(
+        onRefresh: () => statusProvider.getServerStatus(
+          withLoadingIndicator: false,
+        ),
+        child: switch (statusProvider.loadStatus) {
+          LoadStatus.loading => Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 24),
+                  Text(
+                    l10n.loadingStatus,
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: colorScheme.onSurfaceVariant,
                     ),
-                    if (statusProvider.loadStatus == LoadStatus.loading)
-                      SliverFillRemaining(
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const CircularProgressIndicator(),
-                              const SizedBox(height: 30),
-                              Text(
-                                AppLocalizations.of(context)!.loadingStatus,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurfaceVariant,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                  ),
+                ],
+              ),
+            ),
+          LoadStatus.loaded => ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.only(top: 8, bottom: 24),
+              children: const [
+                ProtectionSwitch(),
+                HomeSummaryCards(),
+              ],
+            ),
+          LoadStatus.error => Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.error, color: Colors.red, size: 48),
+                    const SizedBox(height: 20),
+                    Text(
+                      l10n.errorLoadServerStatus,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: colorScheme.onSurfaceVariant,
                       ),
-                    if (statusProvider.loadStatus == LoadStatus.loaded)
-                      SliverList.list(
-                        children: [
-                          const ProtectionSwitch(),
-                          if (appConfigProvider.combinedChartHome == false)
-                            RepaintBoundary(
-                              child: Wrap(
-                                children: [
-                                  FractionallySizedBox(
-                                    widthFactor: width > 700 ? 0.5 : 1,
-                                    child: HomeChart(
-                                      data: statusProvider
-                                          .serverStatus!.stats.dnsQueries,
-                                      label: AppLocalizations.of(context)!
-                                          .dnsQueries,
-                                      primaryValue: intFormat(
-                                        statusProvider
-                                            .serverStatus!.stats.numDnsQueries,
-                                        Localizations.localeOf(context)
-                                            .toString(),
-                                      ),
-                                      secondaryValue:
-                                          "${doubleFormat(statusProvider.serverStatus!.stats.avgProcessingTime * 1000, Localizations.localeOf(context).toString())} ms",
-                                      color: Colors.blue,
-                                      hoursInterval: statusProvider
-                                                  .serverStatus!
-                                                  .stats
-                                                  .timeUnits ==
-                                              "days"
-                                          ? 24
-                                          : 1,
-                                      onTapTitle: () {
-                                        logsProvider.setSelectedResultStatus(
-                                          value: "all",
-                                          refetch: true,
-                                        );
-                                        logsProvider.filterLogs();
-                                        appConfigProvider.setSelectedScreen(1);
-                                      },
-                                      isDesktop: width > 700,
-                                    ),
-                                  ),
-                                  FractionallySizedBox(
-                                    widthFactor: width > 700 ? 0.5 : 1,
-                                    child: HomeChart(
-                                      data: statusProvider
-                                          .serverStatus!.stats.blockedFiltering,
-                                      label: AppLocalizations.of(context)!
-                                          .blockedFilters,
-                                      primaryValue: intFormat(
-                                        statusProvider.serverStatus!.stats
-                                            .numBlockedFiltering,
-                                        Localizations.localeOf(context)
-                                            .toString(),
-                                      ),
-                                      secondaryValue:
-                                          "${statusProvider.serverStatus!.stats.numDnsQueries > 0 ? doubleFormat((statusProvider.serverStatus!.stats.numBlockedFiltering / statusProvider.serverStatus!.stats.numDnsQueries) * 100, Localizations.localeOf(context).toString()) : 0}%",
-                                      color: Colors.red,
-                                      hoursInterval: statusProvider
-                                                  .serverStatus!
-                                                  .stats
-                                                  .timeUnits ==
-                                              "days"
-                                          ? 24
-                                          : 1,
-                                      onTapTitle: () {
-                                        logsProvider.setSelectedResultStatus(
-                                          value: "blocked",
-                                          refetch: true,
-                                        );
-                                        appConfigProvider.setSelectedScreen(1);
-                                      },
-                                      isDesktop: width > 700,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          if (appConfigProvider.combinedChartHome == true)
-                            const RepaintBoundary(
-                              child: Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 16),
-                                child: CombinedHomeChart(),
-                              ),
-                            ),
-                          TopItemsLists(
-                              order: appConfigProvider.homeTopItemsOrder),
-                          const SizedBox(height: 16),
-                        ],
-                      ),
-                    if (statusProvider.loadStatus == LoadStatus.error)
-                      SliverFillRemaining(
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                Icons.error,
-                                color: Colors.red,
-                                size: 50,
-                              ),
-                              const SizedBox(height: 30),
-                              Text(
-                                AppLocalizations.of(context)!
-                                    .errorLoadServerStatus,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurfaceVariant,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    FilledButton.icon(
+                      icon: const Icon(Icons.refresh_rounded),
+                      label: const Text('重新同步端口并重试'),
+                      onPressed: () async {
+                        await ModuleConfigService().reloadFirewallRules();
+                        await statusProvider.getServerStatus();
+                      },
+                    ),
                   ],
                 ),
               ),
             ),
-          ),
-        ),
+        },
       ),
     );
   }

@@ -540,6 +540,8 @@
     "noClientsSearch": "没有匹配的客户端 ",
     "customization": "定制",
     "customizationDescription": "自定义此应用程序",
+    "language": "语言",
+    "languageDescription": "更改应用程序的显示语言",
     "color": "颜色",
     "useDynamicTheme": "使用动态主题",
     "red": "红色",

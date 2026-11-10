@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -15,9 +16,13 @@ class CustomTabContentList extends StatelessWidget {
   final double? refreshIndicatorOffset;
   final Widget? fab;
   final bool? fabVisible;
+  final ValueListenable<bool>? fabVisibleListenable;
   final bool? noSliver;
   final EdgeInsets? listPadding;
   final double? heightFabHidden;
+  final ScrollController? scrollController;
+  final Widget? headerWidget;
+  final double? itemExtent;
 
   const CustomTabContentList({
     super.key,
@@ -30,46 +35,59 @@ class CustomTabContentList extends StatelessWidget {
     required this.onRefresh,
     this.refreshIndicatorOffset,
     this.fab,
-    this.fabVisible, 
+    this.fabVisible,
+    this.fabVisibleListenable,
     this.noSliver,
     this.listPadding,
     this.heightFabHidden,
+    this.scrollController,
+    this.headerWidget,
+    this.itemExtent,
   });
+
+  Widget _buildFab({required bool isNestedSliver}) {
+    if (fab == null) return const SizedBox.shrink();
+
+    Widget buildPositioned(bool visible, bool showingSnackbar) {
+      final double shownBottom = isNestedSliver
+          ? (showingSnackbar ? 90 : 20)
+          : (showingSnackbar ? 70 : 20);
+      final double hiddenBottom =
+          isNestedSliver ? (heightFabHidden ?? -90) : (heightFabHidden ?? -70);
+
+      return AnimatedPositioned(
+        duration: const Duration(milliseconds: 100),
+        curve: Curves.easeInOut,
+        bottom: visible ? shownBottom : hiddenBottom,
+        right: 20,
+        child: isNestedSliver ? SafeArea(child: fab!) : fab!,
+      );
+    }
+
+    return Selector<AppConfigProvider, bool>(
+      selector: (_, p) => p.showingSnackbar,
+      builder: (context, showingSnackbar, _) {
+        if (fabVisibleListenable != null) {
+          return ValueListenableBuilder<bool>(
+            valueListenable: fabVisibleListenable!,
+            builder: (context, visible, _) =>
+                buildPositioned(visible, showingSnackbar),
+          );
+        }
+        return buildPositioned(fabVisible == true, showingSnackbar);
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final appConfigProvider = Provider.of<AppConfigProvider>(context);
-
     switch (loadStatus) {
       case LoadStatus.loading:
-        if (noSliver == true) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: loadingGenerator()
-          );
-        }
-        else {
-          return SafeArea(
-            top: false,
-            child: Builder(
-              builder: (BuildContext context) => CustomScrollView(
-                slivers: [
-                  SliverOverlapInjector(
-                    handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
-                  ),
-                  SliverFillRemaining(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: loadingGenerator()
-                    ),
-                  )
-                ],
-              ),
-            )
-          );
-        }
-        
-        
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: loadingGenerator(),
+        );
+
       case LoadStatus.loaded:
         if (noSliver == true) {
           if (itemsCount > 0) {
@@ -77,127 +95,83 @@ class CustomTabContentList extends StatelessWidget {
               child: Stack(
                 children: [
                   ListView.builder(
+                    controller: scrollController,
                     padding: listPadding,
+                    itemExtent: itemExtent,
                     itemCount: itemsCount,
+                    addAutomaticKeepAlives: false,
                     itemBuilder: (context, index) => contentWidget(index),
                   ),
-                  if (fab != null) AnimatedPositioned(
-                    duration: const Duration(milliseconds: 100),
-                    curve: Curves.easeInOut,
-                    bottom: fabVisible != null && fabVisible == true ?
-                      appConfigProvider.showingSnackbar
-                        ? 70 : 20
-                      : -70,
-                    right: 20,
-                    child: fab!
-                  ),
+                  _buildFab(isNestedSliver: false),
                 ],
               ),
             );
-          }
-          else {
+          } else {
             return SafeArea(
               child: Stack(
                 children: [
                   noData,
-                  if (fab != null) AnimatedPositioned(
-                    duration: const Duration(milliseconds: 100),
-                    curve: Curves.easeInOut,
-                    bottom: fabVisible != null && fabVisible == true ?
-                      appConfigProvider.showingSnackbar
-                        ? 70 : 20
-                      : -70,
-                    right: 20,
-                    child: fab!
-                  ),
+                  _buildFab(isNestedSliver: false),
                 ],
               ),
             );
           }
-        }
-        else {
+        } else {
+          final delegate = SliverChildBuilderDelegate(
+            (context, index) => contentWidget(index),
+            childCount: itemsCount,
+            addAutomaticKeepAlives: false,
+            addRepaintBoundaries: true,
+          );
+
           return Stack(
             children: [
               SafeArea(
                 top: false,
                 bottom: false,
-                child: Builder(
-                  builder: (BuildContext context) {
-                    return RefreshIndicator(
-                      onRefresh: onRefresh,
-                      edgeOffset: refreshIndicatorOffset ?? 70,
-                      child: CustomScrollView(
-                        slivers: <Widget>[
-                          SliverOverlapInjector(
-                            handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
-                          ),
-                          if (itemsCount > 0) SliverList(
-                            delegate: SliverChildBuilderDelegate(
-                              (context, index) => contentWidget(index),
-                              childCount: itemsCount
-                            ),
-                          ),
-                          if (itemsCount == 0) SliverFillRemaining(
-                            child: noData,
-                          )
-                        ],
-                      ),
-                    );
-                  },
+                child: RefreshIndicator(
+                  onRefresh: onRefresh,
+                  edgeOffset: refreshIndicatorOffset ?? 0,
+                  child: CustomScrollView(
+                    controller: scrollController,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    slivers: <Widget>[
+                      if (headerWidget != null)
+                        SliverToBoxAdapter(
+                          child: headerWidget!,
+                        ),
+                      if (itemsCount > 0)
+                        itemExtent != null
+                            ? SliverFixedExtentList(
+                                itemExtent: itemExtent!,
+                                delegate: delegate,
+                              )
+                            : SliverList(
+                                delegate: delegate,
+                              ),
+                      if (itemsCount == 0)
+                        SliverFillRemaining(
+                          hasScrollBody: false,
+                          child: noData,
+                        ),
+                    ],
+                  ),
                 ),
               ),
-              if (fab != null) AnimatedPositioned(
-                duration: const Duration(milliseconds: 100),
-                curve: Curves.easeInOut,
-                bottom: fabVisible != null && fabVisible == true ?
-                  appConfigProvider.showingSnackbar
-                    ? 90 : 20
-                  : (heightFabHidden ?? -90),
-                right: 20,
-                child: SafeArea(child: fab!)
-              ),
+              _buildFab(isNestedSliver: true),
             ],
           );
         }
 
-      case LoadStatus.error: 
-        if (noSliver == true) {
-          return Padding(
-            padding: const EdgeInsets.only(
-              top: 95,
-              left: 16,
-              right: 16
-            ),
-            child: errorGenerator()
-          );
-        }
-        else {
-          return SafeArea(
-            top: false,
-            child: Builder(
-              builder: (BuildContext context) => CustomScrollView(
-                slivers: [
-                  SliverOverlapInjector(
-                    handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
-                  ),
-                  SliverFillRemaining(
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                        top: 95,
-                        left: 16,
-                        right: 16
-                      ),
-                      child: errorGenerator()
-                    ),
-                  )
-                ],
-              ),
-            )
-          );
-        }
-       
-      default:
-        return const SizedBox();
+      case LoadStatus.error:
+        return Padding(
+          padding: const EdgeInsets.only(
+            top: 32,
+            left: 16,
+            right: 16,
+          ),
+          child: errorGenerator(),
+        );
     }
   }
 }

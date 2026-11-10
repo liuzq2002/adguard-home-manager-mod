@@ -19,13 +19,33 @@ object AdGuardModuleController {
     private const val USER = "root"
     private const val PASSWORD = "root"
     private const val TAG = "AdGuardModule"
+    @Volatile
+    private var cachedSuBin: String? = null
 
-    fun readPort(context: Context? = null): Int? {
-        val saved = readSavedAddress(context)
-        if (saved != null) return saved
+    fun readPort(context: Context? = null, forceYaml: Boolean = false): Int? {
+        if (!forceYaml) {
+            val saved = readSavedAddress(context)
+            if (saved != null) return saved
+        }
 
         val output = runSu("cat $YAML_PATH") ?: return null
-        return parsePort(output)
+        val port = parsePort(output)
+        if (port != null && context != null) {
+            saveAddress(context, port)
+        }
+        return port
+    }
+
+    private fun saveAddress(context: Context, port: Int) {
+        try {
+            val prefs: SharedPreferences = context.getSharedPreferences(
+                "FlutterSharedPreferences",
+                Context.MODE_PRIVATE
+            )
+            prefs.edit().putString("flutter.moduleHttpAddress", "127.0.0.1:$port").apply()
+        } catch (t: Throwable) {
+            Log.w(TAG, "save address failed", t)
+        }
     }
 
     fun parsePort(output: String): Int? {
@@ -86,17 +106,28 @@ object AdGuardModuleController {
 
     fun setProtection(port: Int, enabled: Boolean): Boolean {
         val body = """{"enabled":$enabled,"duration":null}"""
-        return httpRequest(port, "/control/protection", "POST", body) != null
+        val ok = httpRequest(port, "/control/protection", "POST", body) != null
+        if (ok) {
+            httpRequest(port, "/control/cache_clear", "POST", "")
+            runSu("ndc resolver flushenv 2>/dev/null")
+        }
+        return ok
     }
 
     private fun runSu(command: String): String? {
-        val candidates = listOf(
+        val defaultCandidates = listOf(
             "su",
             "/sbin/su",
             "/system/bin/su",
             "/system/xbin/su",
             "/debug_ramdisk/su",
         )
+        val first = cachedSuBin
+        val candidates = if (first != null) {
+            listOf(first) + defaultCandidates.filter { it != first }
+        } else {
+            defaultCandidates
+        }
         for (su in candidates) {
             try {
                 val process = ProcessBuilder(su, "-c", command)
@@ -104,7 +135,10 @@ object AdGuardModuleController {
                     .start()
                 val output = process.inputStream.bufferedReader().use { it.readText() }
                 val code = process.waitFor()
-                if (code == 0) return output
+                if (code == 0) {
+                    cachedSuBin = su
+                    return output
+                }
                 val detail = output.trim().take(200)
                 Log.w(TAG, "su($su) exit=$code${if (detail.isEmpty()) "" else " | $detail"}")
             } catch (t: Throwable) {
@@ -168,13 +202,20 @@ class AdGuardTileService : TileService() {
 
         Thread {
             try {
-                val port = AdGuardModuleController.readPort(this)
+                var port = AdGuardModuleController.readPort(this)
                 if (port == null) {
                     updateTile(Tile.STATE_INACTIVE)
                     openManager()
                     return@Thread
                 }
-                val current = AdGuardModuleController.getProtectionState(port)
+                var current = AdGuardModuleController.getProtectionState(port)
+                if (current == null) {
+                    val freshPort = AdGuardModuleController.readPort(this, forceYaml = true)
+                    if (freshPort != null && freshPort != port) {
+                        port = freshPort
+                        current = AdGuardModuleController.getProtectionState(port)
+                    }
+                }
                 val target = current != true
                 val ok = AdGuardModuleController.setProtection(port, target)
                 if (ok) {
@@ -209,7 +250,7 @@ class AdGuardTileService : TileService() {
     private fun refreshTile(attempt: Int, generation: Int) {
         Thread {
             try {
-                val port = AdGuardModuleController.readPort(this)
+                var port = AdGuardModuleController.readPort(this)
                 if (!listening || generation != refreshGeneration) return@Thread
                 if (port == null) {
                     Log.w("AdGuardTile", "listening: no port (su/yaml failed), attempt=$attempt")
@@ -217,7 +258,14 @@ class AdGuardTileService : TileService() {
                     scheduleRetry(attempt, generation)
                     return@Thread
                 }
-                val enabled = AdGuardModuleController.getProtectionState(port)
+                var enabled = AdGuardModuleController.getProtectionState(port)
+                if (enabled == null) {
+                    val freshPort = AdGuardModuleController.readPort(this, forceYaml = true)
+                    if (freshPort != null && freshPort != port) {
+                        port = freshPort
+                        enabled = AdGuardModuleController.getProtectionState(port)
+                    }
+                }
                 val state = when (enabled) {
                     true -> Tile.STATE_ACTIVE
                     false -> Tile.STATE_INACTIVE
@@ -263,7 +311,7 @@ class AdGuardTileService : TileService() {
     }
 
     private fun updateTile(state: Int) {
-        Handler(Looper.getMainLooper()).post {
+        mainHandler.post {
             try {
                 val tile = qsTile ?: return@post
                 tile.state = state

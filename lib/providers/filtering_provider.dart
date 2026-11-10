@@ -1,9 +1,13 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import 'package:adguard_home_manager/constants/enums.dart';
 import 'package:adguard_home_manager/providers/servers_provider.dart';
 import 'package:adguard_home_manager/models/filtering.dart';
 import 'package:adguard_home_manager/providers/status_provider.dart';
+import 'package:adguard_home_manager/services/module_config_service.dart';
 
 enum FilteringListActions { edit, enable, disable }
 
@@ -18,6 +22,7 @@ class FilteringProvider with ChangeNotifier {
 
   LoadStatus _loadStatus = LoadStatus.loading;
   Filtering? _filtering;
+  Future<bool>? _inFlightFetch;
 
   LoadStatus get loadStatus {
     return _loadStatus;
@@ -41,10 +46,30 @@ class FilteringProvider with ChangeNotifier {
   }
 
   Future<bool> fetchFilters({bool? showLoading}) async {
-    if (showLoading == true) {
+    if (_inFlightFetch != null) {
+      return _inFlightFetch!;
+    }
+    if (showLoading == true && _filtering == null) {
       _loadStatus = LoadStatus.loading;
     }
 
+    final future = _doFetchFilters();
+    _inFlightFetch = future;
+    try {
+      return await future;
+    } finally {
+      _inFlightFetch = null;
+    }
+  }
+
+  Future<bool> _doFetchFilters() async {
+    if (_serversProvider?.apiClient2 == null) {
+      if (_filtering == null) {
+        _loadStatus = LoadStatus.error;
+        notifyListeners();
+      }
+      return false;
+    }
     final result = await _serversProvider!.apiClient2!.getFiltering();
     if (result.successful == true) {
       _filtering = result.content as Filtering;
@@ -52,7 +77,9 @@ class FilteringProvider with ChangeNotifier {
       notifyListeners();
       return true;
     } else {
-      _loadStatus = LoadStatus.error;
+      if (_filtering == null) {
+        _loadStatus = LoadStatus.error;
+      }
       notifyListeners();
       return false;
     }
@@ -103,6 +130,15 @@ class FilteringProvider with ChangeNotifier {
     }
   }
 
+  void _flushDnsCaches() {
+    if (_serversProvider?.apiClient2 != null) {
+      unawaited(_serversProvider!.apiClient2!.resetDnsCache());
+    }
+    if (Platform.isAndroid) {
+      unawaited(ModuleConfigService().flushSystemDnsCache());
+    }
+  }
+
   Future<bool> removeCustomRule(String rule) async {
     final List<String> newRules =
         filtering!.userRules.where((r) => r != rule).toList();
@@ -114,6 +150,7 @@ class FilteringProvider with ChangeNotifier {
       Filtering filteringData = filtering!;
       filteringData.userRules = newRules;
       _filtering = filteringData;
+      _flushDnsCaches();
 
       notifyListeners();
       return true;
@@ -182,8 +219,29 @@ class FilteringProvider with ChangeNotifier {
   }
 
   Future<bool> addCustomRule(String rule) async {
-    final List<String> newRules = filtering!.userRules;
-    newRules.add(rule);
+    final String trimmed = rule.trim();
+    final Set<String> toRemove = {trimmed};
+    if (trimmed.startsWith('@@||')) {
+      final base = trimmed.substring(2).replaceAll('\$important', '');
+      toRemove.addAll({
+        base,
+        '$base\$important',
+        '@@$base',
+        '@@$base\$important',
+      });
+    } else if (trimmed.startsWith('||')) {
+      final base = trimmed.replaceAll('\$important', '');
+      toRemove.addAll({
+        base,
+        '$base\$important',
+        '@@$base',
+        '@@$base\$important',
+      });
+    }
+    final List<String> newRules = filtering!.userRules
+        .where((r) => !toRemove.contains(r.trim()))
+        .toList();
+    newRules.add(trimmed);
 
     final result =
         await _serversProvider!.apiClient2!.setCustomRules(rules: newRules);
@@ -192,6 +250,7 @@ class FilteringProvider with ChangeNotifier {
       Filtering filteringData = filtering!;
       filteringData.userRules = newRules;
       _filtering = filteringData;
+      _flushDnsCaches();
       notifyListeners();
       return true;
     } else {
@@ -209,6 +268,7 @@ class FilteringProvider with ChangeNotifier {
       Filtering filteringData = filtering!;
       filteringData.userRules = newRules;
       _filtering = filteringData;
+      _flushDnsCaches();
       notifyListeners();
       return true;
     } else {

@@ -43,12 +43,26 @@ android {
 
     packagingOptions {
         jniLibs {
+            useLegacyPackaging = true
             excludes += [
                 'lib/armeabi-v7a/**',
                 'lib/x86/**',
                 'lib/x86_64/**'
             ]
         }
+        resources {
+            excludes += [
+                'META-INF/*.version',
+                'META-INF/**/LICENSE.txt',
+                'META-INF/LICENSE*',
+                'META-INF/NOTICE*',
+                'kotlin/**'
+            ]
+        }
+    }
+
+    aaptOptions {
+        ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:<dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~:!CupertinoIcons.ttf:!NOTICES.Z'
     }
 
     defaultConfig {
@@ -95,4 +109,17 @@ kotlin {
         jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
     }
 }
+
+tasks.configureEach { task ->
+    if (task.name == 'copyFlutterAssetsRelease' || task.name == 'mergeReleaseAssets') {
+        task.doLast {
+            task.outputs.files.each { outputDir ->
+                if (outputDir.exists() && outputDir.isDirectory()) {
+                    delete fileTree(dir: outputDir, includes: ['**/CupertinoIcons.ttf', '**/NOTICES.Z'])
+                }
+            }
+        }
+    }
+}
+
 

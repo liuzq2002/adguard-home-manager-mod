@@ -6,9 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:adguard_home_manager/l10n/app_localizations.dart';
 
-import 'package:adguard_home_manager/screens/filters/details/check_host_modal.dart';
 import 'package:adguard_home_manager/screens/filters/filters_tabs_view.dart';
-import 'package:adguard_home_manager/screens/filters/filters_triple_column.dart';
 import 'package:adguard_home_manager/screens/filters/details/list_details_screen.dart';
 import 'package:adguard_home_manager/screens/filters/modals/remove_custom_rule_modal.dart';
 import 'package:adguard_home_manager/screens/filters/modals/update_interval_lists_modal.dart';
@@ -31,17 +29,20 @@ class Filters extends StatefulWidget {
 class _FiltersState extends State<Filters> {
   @override
   void initState() {
+    super.initState();
     final filteringProvider =
         Provider.of<FilteringProvider>(context, listen: false);
-    filteringProvider.fetchFilters(showLoading: true);
-    super.initState();
+    filteringProvider.fetchFilters(
+      showLoading: filteringProvider.filtering == null,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final filteringProvider = Provider.of<FilteringProvider>(context);
     final statusProvider = Provider.of<StatusProvider>(context);
-    final appConfigProvider = Provider.of<AppConfigProvider>(context);
+    final appConfigProvider =
+        Provider.of<AppConfigProvider>(context, listen: false);
 
     final width = MediaQuery.of(context).size.width;
 
@@ -63,29 +64,6 @@ class _FiltersState extends State<Filters> {
             label: AppLocalizations.of(context)!.listsNotUpdated,
             color: Colors.red);
       }
-    }
-
-    void showCheckHostModal() {
-      Future.delayed(const Duration(seconds: 0), () {
-        if (width > 700 || !(Platform.isAndroid || Platform.isIOS)) {
-          showDialog(
-            context: context,
-            builder: (context) => const CheckHostModal(
-              dialog: true,
-            ),
-          );
-        } else {
-          showModalBottomSheet(
-            context: context,
-            useRootNavigator: true,
-            builder: (context) => const CheckHostModal(
-              dialog: false,
-            ),
-            backgroundColor: Colors.transparent,
-            isScrollControlled: true,
-          );
-        }
-      });
     }
 
     void enableDisableFiltering() async {
@@ -255,28 +233,11 @@ class _FiltersState extends State<Filters> {
             icon: const Icon(Icons.update_rounded),
             tooltip: AppLocalizations.of(context)!.updateFrequency,
           ),
-          PopupMenuButton(
-              itemBuilder: (context) => [
-                    PopupMenuItem(
-                        onTap: updateLists,
-                        child: Row(
-                          children: [
-                            const Icon(Icons.sync_rounded),
-                            const SizedBox(width: 10),
-                            Text(AppLocalizations.of(context)!.updateLists)
-                          ],
-                        )),
-                    PopupMenuItem(
-                        onTap: showCheckHostModal,
-                        child: Row(
-                          children: [
-                            const Icon(Icons.shield_rounded),
-                            const SizedBox(width: 10),
-                            Text(
-                                AppLocalizations.of(context)!.checkHostFiltered)
-                          ],
-                        )),
-                  ]),
+          IconButton(
+            onPressed: updateLists,
+            icon: const Icon(Icons.sync_rounded),
+            tooltip: AppLocalizations.of(context)!.updateLists,
+          ),
           const SizedBox(width: 5),
         ];
       } else {
@@ -284,23 +245,11 @@ class _FiltersState extends State<Filters> {
       }
     }
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (constraints.maxWidth > 900) {
-          return FiltersTripleColumn(
-            onRemoveCustomRule: openRemoveCustomRuleModal,
-            onOpenDetailsModal: openListDetails,
-            actions: actions(),
-          );
-        } else {
-          return FiltersTabsView(
-            appConfigProvider: appConfigProvider,
-            actions: actions(),
-            onRemoveCustomRule: openRemoveCustomRuleModal,
-            onOpenDetailsModal: openListDetails,
-          );
-        }
-      },
+    return FiltersTabsView(
+      appConfigProvider: appConfigProvider,
+      actions: actions(),
+      onRemoveCustomRule: openRemoveCustomRuleModal,
+      onOpenDetailsModal: openListDetails,
     );
   }
 }

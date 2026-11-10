@@ -1,397 +1,130 @@
 import 'package:flutter/material.dart';
-import 'package:device_info_plus/device_info_plus.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
-import 'package:adguard_home_manager/constants/enums.dart';
-import 'package:adguard_home_manager/config/home_top_items_default_order.dart';
-import 'package:adguard_home_manager/models/github_release.dart';
-import 'package:adguard_home_manager/models/app_log.dart';
+import 'package:adguard_home_manager/constants/languages.dart';
+import 'package:adguard_home_manager/services/platform_locale.dart';
 
 class AppConfigProvider with ChangeNotifier {
   final SharedPreferences sharedPreferencesInstance;
 
   AppConfigProvider({required this.sharedPreferencesInstance});
 
-  PackageInfo? _appInfo;
-  AndroidDeviceInfo? _androidDeviceInfo;
-  IosDeviceInfo? _iosDeviceInfo;
+  static const String appVersion =
+      String.fromEnvironment('FLUTTER_BUILD_NAME', defaultValue: '2.24.11');
 
   int _selectedScreen = 0;
-
-  int? _selectedSettingsScreen;
-
   bool _showingSnackbar = false;
-
-  bool _supportsDynamicTheme = true;
-  int _selectedTheme = 0;
-  bool _useDynamicColor = true;
-  int _staticColor = 0;
-  final bool _useThemeColorForStatus = false;
-
-  int _selectedClientsTab = 0;
+  int _selectedTheme = 0; // 0: system, 1: light, 2: dark
+  String? _selectedLanguage;
   int _selectedFiltersTab = 0;
-
-  List<HomeTopItems> _homeTopItemsOrder = homeTopItemsDefaultOrder;
-
-  bool _hideServerAddress = false;
-
-  final List<AppLog> _logs = [];
-
-  bool _overrideSslCheck = false;
-
-  bool _hideZeroValues = false;
-
-  bool _showTimeLogs = false;
-
-  bool _showIpLogs = false;
-
-  bool _combinedChartHome = false;
-
   String _moduleHttpAddress = '';
 
-  String? _doNotRememberVersion;
-
-  GitHubRelease? _appUpdatesAvailable;
-
-  PackageInfo? get getAppInfo {
-    return _appInfo;
-  }
-
-  AndroidDeviceInfo? get androidDeviceInfo {
-    return _androidDeviceInfo;
-  }
-
-  IosDeviceInfo? get iosDeviceInfo {
-    return _iosDeviceInfo;
-  }
+  final bool useThemeColorForStatus = false;
 
   ThemeMode get selectedTheme {
     switch (_selectedTheme) {
-      case 0:
-        return SchedulerBinding.instance.window.platformBrightness ==
-                Brightness.light
-            ? ThemeMode.light
-            : ThemeMode.dark;
-
       case 1:
         return ThemeMode.light;
-
       case 2:
         return ThemeMode.dark;
-
+      case 0:
       default:
-        return ThemeMode.light;
+        return ThemeMode.system;
     }
   }
 
-  bool get supportsDynamicTheme {
-    return _supportsDynamicTheme;
-  }
+  int get selectedThemeNumber => _selectedTheme;
 
-  int get selectedThemeNumber {
-    return _selectedTheme;
-  }
+  String? get selectedLanguage => _selectedLanguage;
 
-  int get selectedClientsTab {
-    return _selectedClientsTab;
-  }
+  Locale? get selectedLocale => languageFromTag(_selectedLanguage)?.locale;
 
-  int get selectedFiltersTab {
-    return _selectedFiltersTab;
-  }
+  int get selectedFiltersTab => _selectedFiltersTab;
 
-  List<AppLog> get logs {
-    return _logs;
-  }
+  int get selectedScreen => _selectedScreen;
 
-  bool get overrideSslCheck {
-    return _overrideSslCheck;
-  }
+  bool get showingSnackbar => _showingSnackbar;
 
-  bool get hideZeroValues {
-    return _hideZeroValues;
-  }
+  String get moduleHttpAddress => _moduleHttpAddress;
 
-  int get selectedScreen {
-    return _selectedScreen;
-  }
-
-  bool get showingSnackbar {
-    return _showingSnackbar;
-  }
-
-  bool get useDynamicColor {
-    return _useDynamicColor;
-  }
-
-  int get staticColor {
-    return _staticColor;
-  }
-
-  bool get useThemeColorForStatus {
-    return _useThemeColorForStatus;
-  }
-
-  bool get showTimeLogs {
-    return _showTimeLogs;
-  }
-
-  bool get showIpLogs {
-    return _showIpLogs;
-  }
-
-  bool get combinedChartHome {
-    return _combinedChartHome;
-  }
-
-  String get moduleHttpAddress {
-    return _moduleHttpAddress;
-  }
-
-  String? get doNotRememberVersion {
-    return _doNotRememberVersion;
-  }
-
-  int? get selectedSettingsScreen {
-    return _selectedSettingsScreen;
-  }
-
-  GitHubRelease? get appUpdatesAvailable {
-    return _appUpdatesAvailable;
-  }
-
-  List<HomeTopItems> get homeTopItemsOrder {
-    return _homeTopItemsOrder;
-  }
-
-  bool get hideServerAddress {
-    return _hideServerAddress;
-  }
-
-  void setSupportsDynamicTheme(bool value) {
-    _supportsDynamicTheme = value;
-  }
-
-  void setAppInfo(PackageInfo appInfo) {
-    _appInfo = appInfo;
-  }
-
-  void setAndroidInfo(AndroidDeviceInfo deviceInfo) {
-    _androidDeviceInfo = deviceInfo;
-  }
-
-  void setIosInfo(IosDeviceInfo deviceInfo) {
-    _iosDeviceInfo = deviceInfo;
-  }
-
-  void setSelectedClientsTab(int tab) {
-    _selectedClientsTab = tab;
-    notifyListeners();
-  }
-
-  void setSelectedFiltersTab(int tab) {
+  void setSelectedFiltersTab(int tab, {bool notify = false}) {
+    if (_selectedFiltersTab == tab) return;
     _selectedFiltersTab = tab;
-    notifyListeners();
-  }
-
-  void addLog(AppLog log) {
-    _logs.add(log);
-    notifyListeners();
+    if (notify) {
+      notifyListeners();
+    }
   }
 
   void setSelectedScreen(int screen) {
+    if (_selectedScreen == screen) return;
     _selectedScreen = screen;
     notifyListeners();
   }
 
-  void setShowingSnackbar(bool status) async {
+  void setShowingSnackbar(bool status) {
+    if (_showingSnackbar == status) return;
     _showingSnackbar = status;
     notifyListeners();
   }
 
-  void setSelectedSettingsScreen({required int? screen, bool? notify}) {
-    _selectedSettingsScreen = screen;
-    if (notify == true) {
-      notifyListeners();
-    }
-  }
-
-  void setAppUpdatesAvailable(GitHubRelease? value) {
-    _appUpdatesAvailable = value;
-    notifyListeners();
-  }
-
-  Future<bool> setOverrideSslCheck(bool status) async {
-    try {
-      sharedPreferencesInstance.setBool('overrideSslCheck', status);
-      _overrideSslCheck = status;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  Future<bool> setHideZeroValues(bool status) async {
-    try {
-      sharedPreferencesInstance.setBool('hideZeroValues', status);
-      _hideZeroValues = status;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  Future<bool> setshowTimeLogs(bool status) async {
-    try {
-      sharedPreferencesInstance.setBool('showTimeLogs', status);
-      _showTimeLogs = status;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  Future<bool> setShowIpLogs(bool status) async {
-    try {
-      sharedPreferencesInstance.setBool('showIpLogs', status);
-      _showIpLogs = status;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
   Future<bool> setSelectedTheme(int value) async {
     try {
-      sharedPreferencesInstance.setInt('selectedTheme', value);
+      await sharedPreferencesInstance.setInt('selectedTheme', value);
       _selectedTheme = value;
       notifyListeners();
       return true;
-    } catch (e) {
+    } catch (_) {
       return false;
     }
   }
 
-  Future<bool> setUseDynamicColor(bool value) async {
+  Future<bool> setSelectedLanguage(String? value) async {
     try {
-      sharedPreferencesInstance.setBool('useDynamicColor', value);
-      _useDynamicColor = value;
+      if (value == null || value == 'system') {
+        await sharedPreferencesInstance.remove('selectedLanguage');
+        _selectedLanguage = null;
+      } else {
+        await sharedPreferencesInstance.setString('selectedLanguage', value);
+        _selectedLanguage = value;
+      }
+      await PlatformLocaleService.setApplicationLocale(_selectedLanguage);
       notifyListeners();
       return true;
-    } catch (e) {
+    } catch (_) {
       return false;
     }
   }
 
-  Future<bool> setCombinedChartHome(bool value) async {
+  Future<void> syncLanguageWithSystem() async {
     try {
-      sharedPreferencesInstance.setBool('combinedChart', value);
-      _combinedChartHome = value;
+      final systemTag = await PlatformLocaleService.getApplicationLocale();
+      final resolved = languageFromTag(systemTag)?.tag;
+      if (resolved == _selectedLanguage) return;
+      if (systemTag == null && _selectedLanguage != null) {
+        await PlatformLocaleService.setApplicationLocale(_selectedLanguage);
+        return;
+      }
+      _selectedLanguage = resolved;
+      if (resolved == null) {
+        await sharedPreferencesInstance.remove('selectedLanguage');
+      } else {
+        await sharedPreferencesInstance.setString('selectedLanguage', resolved);
+      }
       notifyListeners();
-      return true;
-    } catch (e) {
-      return false;
-    }
+    } catch (_) {}
   }
 
   void setModuleHttpAddress(String value) {
+    if (_moduleHttpAddress == value) return;
     _moduleHttpAddress = value;
     sharedPreferencesInstance.setString('moduleHttpAddress', value);
     notifyListeners();
   }
 
-  Future<bool> setStaticColor(int value) async {
-    try {
-      sharedPreferencesInstance.setInt('staticColor', value);
-      _staticColor = value;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  Future<bool> setHomeTopItemsOrder(List<HomeTopItems> order) async {
-    try {
-      sharedPreferencesInstance.setStringList(
-          'homeTopItemsOrder', List<String>.from(order.map((e) => e.name)));
-      _homeTopItemsOrder = order;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  Future<bool> setHideServerAddress(bool value) async {
-    try {
-      sharedPreferencesInstance.setBool('hideServerAddress', value);
-      _hideServerAddress = value;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  Future<bool> setDoNotRememberVersion(String value) async {
-    final updated =
-        await sharedPreferencesInstance.setString('hideServerAddress', value);
-    return updated;
-  }
-
   void saveFromSharedPreferences() {
     _selectedTheme = sharedPreferencesInstance.getInt('selectedTheme') ?? 0;
-    _overrideSslCheck =
-        sharedPreferencesInstance.getBool('overrideSslCheck') ?? false;
-    _hideZeroValues =
-        sharedPreferencesInstance.getBool('hideZeroValues') ?? false;
-    _useDynamicColor =
-        sharedPreferencesInstance.getBool('useDynamicColor') ?? true;
-    _staticColor = sharedPreferencesInstance.getInt('staticColor') ?? 0;
-    _showTimeLogs = sharedPreferencesInstance.getBool('showTimeLogs') ?? false;
-    _doNotRememberVersion =
-        sharedPreferencesInstance.getString('doNotRememberVersion');
-    _showIpLogs = sharedPreferencesInstance.getBool('showIpLogs') ?? false;
-    _combinedChartHome =
-        sharedPreferencesInstance.getBool('combinedChart') ?? false;
-    _hideServerAddress =
-        sharedPreferencesInstance.getBool('hideServerAddress') ?? false;
+    _selectedLanguage = sharedPreferencesInstance.getString('selectedLanguage');
     _moduleHttpAddress =
         sharedPreferencesInstance.getString('moduleHttpAddress') ?? '';
-    if (sharedPreferencesInstance.getStringList('homeTopItemsOrder') != null) {
-      try {
-        _homeTopItemsOrder = List<HomeTopItems>.from(List<String>.from(
-                sharedPreferencesInstance.getStringList('homeTopItemsOrder')!)
-            .map((e) {
-              switch (e) {
-                case 'queriedDomains':
-                  return HomeTopItems.queriedDomains;
-
-                case 'blockedDomains':
-                  return HomeTopItems.blockedDomains;
-
-                case 'topUpstreams':
-                  return HomeTopItems.topUpstreams;
-
-                case 'avgUpstreamResponseTime':
-                  return HomeTopItems.avgUpstreamResponseTime;
-
-                default:
-                  return null;
-              }
-            })
-            .where((e) => e != null)
-            .toList());
-      } catch (e) {
-        _homeTopItemsOrder = homeTopItemsDefaultOrder;
-      }
-    }
   }
 }

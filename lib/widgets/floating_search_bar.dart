@@ -42,7 +42,10 @@ class _SearchState extends State<FloatingSearchBar> {
     final topPadding = MediaQuery.of(globalNavigatorKey.currentContext!).viewPadding.top;
 
     return GestureDetector(
-      onTap: () => Navigator.pop(context),
+      onTap: () {
+        widget.onSearchCompleted(_searchController.text);
+        Navigator.pop(context);
+      },
       child: Material(
         color: Colors.transparent,
         child: LayoutBuilder(
@@ -66,7 +69,12 @@ class _SearchState extends State<FloatingSearchBar> {
                           borderRadius: BorderRadius.circular(16),
                           child: TextFormField(
                             controller: _searchController,
-                            onChanged: widget.onSearchFieldUpdated,
+                            onChanged: (v) {
+                              setState(() {});
+                              if (widget.onSearchFieldUpdated != null) {
+                                widget.onSearchFieldUpdated!(v);
+                              }
+                            },
                             onFieldSubmitted: (v) {
                               widget.onSearchCompleted(v);
                               Navigator.pop(context);
@@ -77,7 +85,7 @@ class _SearchState extends State<FloatingSearchBar> {
                               prefixIcon: const Icon(Icons.search_rounded),
                               border: InputBorder.none,
                               filled: true,
-                              fillColor: Colors.grey.withOpacity(0.2),
+                              fillColor: Colors.grey.withValues(alpha: 0.2),
                               suffixIcon: _searchController.text != ""
                                 ? IconButton(
                                     onPressed: () {

@@ -155,9 +155,6 @@ class _TestUpstreamDnsModalState extends State<TestUpstreamDnsModal> {
                     )
                   ],
                 );
-        
-              default:
-                return const SizedBox();
             }
           },
         ),

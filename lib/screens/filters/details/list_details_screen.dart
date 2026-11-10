@@ -12,7 +12,7 @@ import 'package:adguard_home_manager/screens/filters/details/add_list_modal.dart
 import 'package:adguard_home_manager/screens/filters/modals/delete_list_modal.dart';
 import 'package:adguard_home_manager/widgets/custom_list_tile.dart';
 
-import 'package:adguard_home_manager/functions/open_url.dart';
+import 'package:adguard_home_manager/functions/copy_clipboard.dart';
 import 'package:adguard_home_manager/functions/format_time.dart';
 import 'package:adguard_home_manager/providers/filtering_provider.dart';
 import 'package:adguard_home_manager/classes/process_modal.dart';
@@ -325,9 +325,12 @@ class _Content extends StatelessWidget {
               )
             : null,
           trailing: IconButton(
-            onPressed: () => openUrl(list.url), 
-            icon: const Icon(Icons.open_in_browser_rounded),
-            tooltip: AppLocalizations.of(context)!.openListUrl,
+            onPressed: () => copyToClipboard(
+              value: list.url,
+              successMessage: AppLocalizations.of(context)!.listUrlCopied,
+            ),
+            icon: const Icon(Icons.copy_rounded),
+            tooltip: AppLocalizations.of(context)!.copyListUrl,
           ),
         ),
         CustomListTile(

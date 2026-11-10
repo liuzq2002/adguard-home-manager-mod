@@ -49,113 +49,41 @@ class DnsProvider with ChangeNotifier {
     }
   }
 
-  Future<ApiResponse> savePrivateReverseServersConfig(
-      Map<String, dynamic> value) async {
+  Future<ApiResponse> saveUnifiedDnsConfig(Map<String, dynamic> value) async {
     final result =
         await _serversProvider!.apiClient2!.setDnsConfig(data: value);
 
-    if (result.successful == true) {
-      DnsInfo data = dnsInfo!;
-      if (value['local_ptr_upstreams'] != null) {
-        data.localPtrUpstreams = value['local_ptr_upstreams'];
+    if (result.successful == true && dnsInfo != null) {
+      final data = dnsInfo!;
+      if (value['upstream_dns'] != null) {
+        data.upstreamDns = List<String>.from(value['upstream_dns']);
       }
-      data.usePrivatePtrResolvers = value['use_private_ptr_resolvers'];
-      data.resolveClients = value['resolve_clients'];
+      if (value.containsKey('upstream_mode')) {
+        data.upstreamMode = value['upstream_mode'];
+      }
+      if (value['bootstrap_dns'] != null) {
+        data.bootstrapDns = List<String>.from(value['bootstrap_dns']);
+      }
+      if (value['fallback_dns'] != null) {
+        data.fallbackDns = List<String>.from(value['fallback_dns']);
+      }
+      if (value['blocking_mode'] != null) {
+        data.blockingMode = value['blocking_mode'];
+      }
+      if (value['edns_cs_enabled'] != null) {
+        data.ednsCsEnabled = value['edns_cs_enabled'];
+      }
+      if (value['dnssec_enabled'] != null) {
+        data.dnssecEnabled = value['dnssec_enabled'];
+      }
+      if (value['disable_ipv6'] != null) {
+        data.disableIpv6 = value['disable_ipv6'];
+      }
+      if (value['cache_optimistic'] != null) {
+        data.cacheOptimistic = value['cache_optimistic'];
+      }
       setDnsInfoData(data);
-      return result;
-    } else {
-      return result;
     }
-  }
-
-  Future<ApiResponse> saveUpstreamDnsConfig(Map<String, dynamic> value) async {
-    final result =
-        await _serversProvider!.apiClient2!.setDnsConfig(data: value);
-
-    if (result.successful == true) {
-      DnsInfo data = dnsInfo!;
-      data.upstreamDns = List<String>.from(value['upstream_dns']);
-      data.upstreamMode = value['upstream_mode'];
-      setDnsInfoData(data);
-      return result;
-    } else {
-      return result;
-    }
-  }
-
-  Future<ApiResponse> saveBootstrapDnsConfig(Map<String, dynamic> value) async {
-    final result =
-        await _serversProvider!.apiClient2!.setDnsConfig(data: value);
-
-    if (result.successful == true) {
-      DnsInfo data = dnsInfo!;
-      data.bootstrapDns = List<String>.from(value['bootstrap_dns']);
-      setDnsInfoData(data);
-      return result;
-    } else {
-      return result;
-    }
-  }
-
-  Future<ApiResponse> saveFallbackDnsConfig(Map<String, dynamic> value) async {
-    final result =
-        await _serversProvider!.apiClient2!.setDnsConfig(data: value);
-
-    if (result.successful == true) {
-      DnsInfo data = dnsInfo!;
-      data.fallbackDns = List<String>.from(value['fallback_dns']);
-      setDnsInfoData(data);
-      return result;
-    } else {
-      return result;
-    }
-  }
-
-  Future<ApiResponse> saveCacheCacheConfig(Map<String, dynamic> value) async {
-    final result =
-        await _serversProvider!.apiClient2!.setDnsConfig(data: value);
-
-    if (result.successful == true) {
-      DnsInfo data = dnsInfo!;
-      data.cacheSize = value['cache_size'];
-      data.cacheTtlMin = value['cache_ttl_min'];
-      data.cacheTtlMax = value['cache_ttl_max'];
-      data.cacheOptimistic = value['cache_optimistic'];
-      setDnsInfoData(data);
-      return result;
-    } else {
-      return result;
-    }
-  }
-
-  Future<ApiResponse> saveDnsServerConfig(Map<String, dynamic> value) async {
-    final result =
-        await _serversProvider!.apiClient2!.setDnsConfig(data: value);
-
-    if (result.successful == true) {
-      DnsInfo data = dnsInfo!;
-      data.ratelimit = value['ratelimit'] ?? data.ratelimit;
-      data.ednsCsEnabled = value['edns_cs_enabled'] ?? data.ednsCsEnabled;
-      data.ednsCsUseCustom =
-          value['edns_cs_use_custom'] ?? data.ednsCsUseCustom;
-      data.ednsCsCustomIp = value['edns_cs_custom_ip'] ?? data.ednsCsCustomIp;
-      data.dnssecEnabled = value['dnssec_enabled'] ?? data.dnssecEnabled;
-      data.disableIpv6 = value['disable_ipv6'] ?? data.disableIpv6;
-      data.blockingMode = value['blocking_mode'] ?? data.blockingMode;
-      data.blockingIpv4 = value['blocking_ipv4'] ?? data.blockingIpv4;
-      data.blockingIpv6 = value['blocking_ipv6'] ?? data.blockingIpv6;
-      data.blockedResponseTtl =
-          value['blocked_response_ttl'] ?? data.blockedResponseTtl;
-      data.ratelimitSubnetLenIpv4 =
-          value['ratelimit_subnet_len_ipv4'] ?? data.ratelimitSubnetLenIpv4;
-      data.ratelimitSubnetLenIpv6 =
-          value['ratelimit_subnet_len_ipv6'] ?? data.ratelimitSubnetLenIpv6;
-      data.ratelimitWhitelist =
-          value['ratelimit_whitelist'] ?? data.ratelimitWhitelist;
-      setDnsInfoData(data);
-      return result;
-    } else {
-      return result;
-    }
+    return result;
   }
 }

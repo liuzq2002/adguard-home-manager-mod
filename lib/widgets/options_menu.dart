@@ -1,12 +1,9 @@
 import 'dart:io';
 
-import 'package:contextmenu/contextmenu.dart';
 import 'package:flutter/material.dart';
 import 'package:adguard_home_manager/l10n/app_localizations.dart';
 
-
 import 'package:adguard_home_manager/widgets/custom_list_tile_dialog.dart';
-import 'package:adguard_home_manager/widgets/custom_list_tile.dart';
 
 import 'package:adguard_home_manager/models/menu_option.dart';
 
@@ -40,25 +37,13 @@ class OptionsMenu extends StatelessWidget {
 
     return Material(
       color: Colors.transparent,
-      child: ContextMenuArea(
-        builder: (context) => options(value).map((opt) => CustomListTile(
-          title: opt.title,
-          icon: opt.icon,
-          onTap: () {
-            opt.action();
-            Navigator.pop(context);
-          },
-        )).toList(),
-        child: InkWell(
-          onTap: onTap != null
-            ? () => onTap!(value)
-            : null,
-          onLongPress: (Platform.isAndroid || Platform.isIOS)
+      child: InkWell(
+        onTap: onTap != null ? () => onTap!(value) : null,
+        onLongPress: (Platform.isAndroid || Platform.isIOS)
             ? () => openOptionsModal()
             : null,
-          borderRadius: borderRadius,
-          child: child,
-        ),
+        borderRadius: borderRadius,
+        child: child,
       ),
     );
   }
